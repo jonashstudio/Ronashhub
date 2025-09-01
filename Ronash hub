@@ -1,10 +1,12 @@
--- RONASH HUB SCRIPT --
+-- Ronash Hub UI
+local player = game.Players.LocalPlayer
+local char = player.Character or player.CharacterAdded:Wait()
+local hum = char:WaitForChild("Humanoid")
 
--- ScreenGui
 local screenGui = Instance.new("ScreenGui")
 screenGui.Name = "RonashHubUI"
 screenGui.ResetOnSpawn = false
-screenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
+screenGui.Parent = player:WaitForChild("PlayerGui")
 
 -- Main Frame
 local mainFrame = Instance.new("Frame")
@@ -16,10 +18,7 @@ mainFrame.Active = true
 mainFrame.Draggable = true
 mainFrame.Visible = true
 mainFrame.Parent = screenGui
-
-local mainCorner = Instance.new("UICorner")
-mainCorner.CornerRadius = UDim.new(0, 10)
-mainCorner.Parent = mainFrame
+Instance.new("UICorner", mainFrame).CornerRadius = UDim.new(0, 10)
 
 -- Top Bar
 local topBar = Instance.new("Frame")
@@ -39,7 +38,7 @@ title.TextColor3 = Color3.new(1,1,1)
 title.BackgroundTransparency = 1
 title.Parent = topBar
 
--- Close Button
+-- Close & Minimize
 local closeBtn = Instance.new("TextButton")
 closeBtn.Size = UDim2.new(0, 30, 1, 0)
 closeBtn.Position = UDim2.new(1, -30, 0, 0)
@@ -50,7 +49,6 @@ closeBtn.Font = Enum.Font.GothamBold
 closeBtn.TextSize = 14
 closeBtn.Parent = topBar
 
--- Minimize Button
 local minBtn = Instance.new("TextButton")
 minBtn.Size = UDim2.new(0, 30, 1, 0)
 minBtn.Position = UDim2.new(1, -60, 0, 0)
@@ -68,52 +66,19 @@ sidebar.Position = UDim2.new(0, 0, 0, 30)
 sidebar.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
 sidebar.BorderSizePixel = 0
 sidebar.Parent = mainFrame
+Instance.new("UICorner", sidebar).CornerRadius = UDim.new(0, 10)
 
-local sidebarCorner = Instance.new("UICorner")
-sidebarCorner.CornerRadius = UDim.new(0, 10)
-sidebarCorner.Parent = sidebar
-
--- Content Frame
+-- Content
 local contentFrame = Instance.new("Frame")
 contentFrame.Size = UDim2.new(1, -150, 1, -30)
 contentFrame.Position = UDim2.new(0, 150, 0, 30)
 contentFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
 contentFrame.BorderSizePixel = 0
 contentFrame.Parent = mainFrame
+Instance.new("UICorner", contentFrame).CornerRadius = UDim.new(0, 10)
 
-local contentCorner = Instance.new("UICorner")
-contentCorner.CornerRadius = UDim.new(0, 10)
-contentCorner.Parent = contentFrame
-
--- Sidebar button creator
-local function createSidebarButton(name, order, callback)
-    local button = Instance.new("TextButton")
-    button.Size = UDim2.new(1, -10, 0, 35)
-    button.Position = UDim2.new(0, 5, 0, 10 + (order * 40))
-    button.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-    button.Text = name
-    button.TextColor3 = Color3.fromRGB(255, 255, 255)
-    button.Font = Enum.Font.GothamBold
-    button.TextSize = 14
-    button.Parent = sidebar
-
-    local btnCorner = Instance.new("UICorner")
-    btnCorner.CornerRadius = UDim.new(0, 6)
-    btnCorner.Parent = button
-
-    button.MouseEnter:Connect(function()
-        button.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
-    end)
-    button.MouseLeave:Connect(function()
-        button.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-    end)
-
-    button.MouseButton1Click:Connect(callback)
-end
-
--- Pages table
+-- Pages
 local pages = {}
-
 local function createPage(name)
     local page = Instance.new("Frame")
     page.Size = UDim2.new(1, 0, 1, 0)
@@ -123,202 +88,183 @@ local function createPage(name)
     pages[name] = page
     return page
 end
-
 local function showPage(name)
-    for _, page in pairs(pages) do
-        page.Visible = false
-    end
-    if pages[name] then
-        pages[name].Visible = true
-    end
+    for _, page in pairs(pages) do page.Visible = false end
+    if pages[name] then pages[name].Visible = true end
+end
+
+-- Sidebar Buttons
+local function createSidebarButton(name, order, callback)
+    local btn = Instance.new("TextButton")
+    btn.Size = UDim2.new(1, -10, 0, 35)
+    btn.Position = UDim2.new(0, 5, 0, 10 + (order * 40))
+    btn.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    btn.Text = name
+    btn.TextColor3 = Color3.new(1,1,1)
+    btn.Font = Enum.Font.GothamBold
+    btn.TextSize = 14
+    btn.Parent = sidebar
+    Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 6)
+    btn.MouseEnter:Connect(function() btn.BackgroundColor3 = Color3.fromRGB(60, 60, 60) end)
+    btn.MouseLeave:Connect(function() btn.BackgroundColor3 = Color3.fromRGB(40, 40, 40) end)
+    btn.MouseButton1Click:Connect(callback)
 end
 
 -- Pages
-local travelPage = createPage("Travel")
-local statusPage = createPage("Status")
 local movementPage = createPage("Movement")
-
--- Sidebar buttons
-createSidebarButton("Travel", 0, function() showPage("Travel") end)
+local statusPage = createPage("Status")
+createSidebarButton("Movement", 0, function() showPage("Movement") end)
 createSidebarButton("Status", 1, function() showPage("Status") end)
-createSidebarButton("Movement", 2, function() showPage("Movement") end)
 
--------------------------
--- Travel Page Example --
--------------------------
-local travelLabel = Instance.new("TextLabel")
-travelLabel.Text = "Travel Options"
-travelLabel.Size = UDim2.new(1, -20, 0, 40)
-travelLabel.Position = UDim2.new(0, 10, 0, 10)
-travelLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-travelLabel.Font = Enum.Font.GothamBold
-travelLabel.TextSize = 18
-travelLabel.BackgroundTransparency = 1
-travelLabel.Parent = travelPage
+-- Utility: Counter control
+local function createCounter(parent, labelText, startValue, step, yPos, callback)
+    local label = Instance.new("TextLabel")
+    label.Text = labelText .. ": " .. tostring(startValue)
+    label.Size = UDim2.new(0, 200, 0, 30)
+    label.Position = UDim2.new(0, 20, 0, yPos)
+    label.TextColor3 = Color3.new(1,1,1)
+    label.Font = Enum.Font.GothamBold
+    label.TextSize = 14
+    label.BackgroundTransparency = 1
+    label.Parent = parent
 
-local teleportBtn = Instance.new("TextButton")
-teleportBtn.Text = "Teleport to Spawn"
-teleportBtn.Size = UDim2.new(0, 200, 0, 40)
-teleportBtn.Position = UDim2.new(0, 20, 0, 60)
-teleportBtn.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-teleportBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-teleportBtn.Font = Enum.Font.GothamBold
-teleportBtn.TextSize = 14
-teleportBtn.Parent = travelPage
+    local minus = Instance.new("TextButton")
+    minus.Size = UDim2.new(0, 40, 0, 30)
+    minus.Position = UDim2.new(0, 230, 0, yPos)
+    minus.Text = "-"
+    minus.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+    minus.TextColor3 = Color3.new(1,1,1)
+    minus.Font = Enum.Font.GothamBold
+    minus.TextSize = 18
+    minus.Parent = parent
+    Instance.new("UICorner", minus).CornerRadius = UDim.new(0, 6)
 
-local teleportCorner = Instance.new("UICorner")
-teleportCorner.CornerRadius = UDim.new(0, 6)
-teleportCorner.Parent = teleportBtn
+    local plus = Instance.new("TextButton")
+    plus.Size = UDim2.new(0, 40, 0, 30)
+    plus.Position = UDim2.new(0, 280, 0, yPos)
+    plus.Text = "+"
+    plus.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+    plus.TextColor3 = Color3.new(1,1,1)
+    plus.Font = Enum.Font.GothamBold
+    plus.TextSize = 18
+    plus.Parent = parent
+    Instance.new("UICorner", plus).CornerRadius = UDim.new(0, 6)
 
-teleportBtn.MouseButton1Click:Connect(function()
-    local player = game.Players.LocalPlayer
-    if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-        player.Character.HumanoidRootPart.CFrame = CFrame.new(0, 10, 0)
+    local value = startValue
+    local function update(delta)
+        value = value + delta
+        label.Text = labelText .. ": " .. tostring(value)
+        callback(value)
     end
-end)
 
-------------------------
--- Status Page (AFK) --
-------------------------
+    plus.MouseButton1Click:Connect(function() update(step) end)
+    minus.MouseButton1Click:Connect(function() update(-step) end)
+
+    return label
+end
+
+-- Movement Controls
+local flyEnabled = false
+local flySpeed = 50
+local flyBodyVel, flyBodyGyro
+
+-- Fly toggle button
+local flyBtn = Instance.new("TextButton")
+flyBtn.Text = "Fly: OFF"
+flyBtn.Size = UDim2.new(0, 200, 0, 40)
+flyBtn.Position = UDim2.new(0, 20, 0, 20)
+flyBtn.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+flyBtn.TextColor3 = Color3.new(1,1,1)
+flyBtn.Font = Enum.Font.GothamBold
+flyBtn.TextSize = 14
+flyBtn.Parent = movementPage
+Instance.new("UICorner", flyBtn).CornerRadius = UDim.new(0, 6)
+
+-- Fly logic
+local uis = game:GetService("UserInputService")
+local flying = false
+local function toggleFly()
+    flying = not flying
+    if flying then
+        flyBtn.Text = "Fly: ON"
+        local hrp = char:WaitForChild("HumanoidRootPart")
+        flyBodyVel = Instance.new("BodyVelocity")
+        flyBodyVel.Velocity = Vector3.zero
+        flyBodyVel.MaxForce = Vector3.new(4000,4000,4000)
+        flyBodyVel.Parent = hrp
+        flyBodyGyro = Instance.new("BodyGyro")
+        flyBodyGyro.MaxTorque = Vector3.new(4000,4000,4000)
+        flyBodyGyro.CFrame = hrp.CFrame
+        flyBodyGyro.Parent = hrp
+        while flying and task.wait() do
+            local move = Vector3.zero
+            if uis:IsKeyDown(Enum.KeyCode.W) then move = move + (workspace.CurrentCamera.CFrame.LookVector) end
+            if uis:IsKeyDown(Enum.KeyCode.S) then move = move - (workspace.CurrentCamera.CFrame.LookVector) end
+            if uis:IsKeyDown(Enum.KeyCode.A) then move = move - (workspace.CurrentCamera.CFrame.RightVector) end
+            if uis:IsKeyDown(Enum.KeyCode.D) then move = move + (workspace.CurrentCamera.CFrame.RightVector) end
+            if uis:IsKeyDown(Enum.KeyCode.Space) then move = move + Vector3.new(0,1,0) end
+            if uis:IsKeyDown(Enum.KeyCode.LeftControl) then move = move - Vector3.new(0,1,0) end
+            flyBodyVel.Velocity = move.Unit * flySpeed
+            flyBodyGyro.CFrame = workspace.CurrentCamera.CFrame
+        end
+        if flyBodyVel then flyBodyVel:Destroy() end
+        if flyBodyGyro then flyBodyGyro:Destroy() end
+    else
+        flyBtn.Text = "Fly: OFF"
+    end
+end
+flyBtn.MouseButton1Click:Connect(toggleFly)
+
+-- Fly Speed Counter
+createCounter(movementPage, "Fly Speed", flySpeed, 5, 70, function(v) flySpeed = v end)
+
+-- WalkSpeed Counter
+createCounter(movementPage, "WalkSpeed", hum.WalkSpeed, 2, 120, function(v) hum.WalkSpeed = v end)
+
+-- JumpPower Counter
+createCounter(movementPage, "JumpPower", hum.JumpPower, 5, 170, function(v) hum.JumpPower = v end)
+
+-- Gravity Counter
+createCounter(movementPage, "Gravity", workspace.Gravity, 10, 220, function(v) workspace.Gravity = v end)
+
+-- Status (AFK Toggle)
 local afkLabel = Instance.new("TextLabel")
 afkLabel.Text = "AFK Status: OFF"
 afkLabel.Size = UDim2.new(1, -20, 0, 40)
 afkLabel.Position = UDim2.new(0, 10, 0, 10)
-afkLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+afkLabel.TextColor3 = Color3.new(1,1,1)
 afkLabel.Font = Enum.Font.GothamBold
 afkLabel.TextSize = 18
 afkLabel.BackgroundTransparency = 1
 afkLabel.Parent = statusPage
 
-local afkButton = Instance.new("TextButton")
-afkButton.Text = "Toggle AFK"
-afkButton.Size = UDim2.new(0, 200, 0, 40)
-afkButton.Position = UDim2.new(0, 20, 0, 60)
-afkButton.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-afkButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-afkButton.Font = Enum.Font.GothamBold
-afkButton.TextSize = 14
-afkButton.Parent = statusPage
+local afkBtn = Instance.new("TextButton")
+afkBtn.Text = "Toggle AFK"
+afkBtn.Size = UDim2.new(0, 200, 0, 40)
+afkBtn.Position = UDim2.new(0, 20, 0, 60)
+afkBtn.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+afkBtn.TextColor3 = Color3.new(1,1,1)
+afkBtn.Font = Enum.Font.GothamBold
+afkBtn.TextSize = 14
+afkBtn.Parent = statusPage
+Instance.new("UICorner", afkBtn).CornerRadius = UDim.new(0, 6)
 
-local afkCorner = Instance.new("UICorner")
-afkCorner.CornerRadius = UDim.new(0, 6)
-afkCorner.Parent = afkButton
-
+local vUser = game:GetService("VirtualUser")
 local isAFK = false
-local afkConnection = nil
-afkButton.MouseButton1Click:Connect(function()
+afkBtn.MouseButton1Click:Connect(function()
     isAFK = not isAFK
     if isAFK then
         afkLabel.Text = "AFK Status: ON"
-        afkConnection = game:GetService("Players").LocalPlayer.Idled:Connect(function()
-            local VirtualUser = game:GetService("VirtualUser")
-            VirtualUser:CaptureController()
-            VirtualUser:ClickButton2(Vector2.new())
+        player.Idled:Connect(function()
+            vUser:CaptureController()
+            vUser:ClickButton2(Vector2.new())
         end)
-        game.StarterGui:SetCore("SendNotification", {
-            Title = "AntiAFK",
-            Text = "Anti-AFK Enabled",
-            Duration = 3
-        })
     else
         afkLabel.Text = "AFK Status: OFF"
-        if afkConnection then
-            afkConnection:Disconnect()
-        end
-        game.StarterGui:SetCore("SendNotification", {
-            Title = "AntiAFK",
-            Text = "Anti-AFK Disabled",
-            Duration = 3
-        })
     end
 end)
 
------------------------------
--- Movement Page Controls --
------------------------------
-local humanoid = game.Players.LocalPlayer.Character:WaitForChild("Humanoid")
-local userInputService = game:GetService("UserInputService")
-local flying = false
-local flyConnection
-
-local function createMovementControl(labelText, defaultValue, callback)
-    local label = Instance.new("TextLabel")
-    label.Text = labelText .. ": " .. tostring(defaultValue)
-    label.Size = UDim2.new(1, -20, 0, 30)
-    label.Position = UDim2.new(0, 10, 0, (#movementPage:GetChildren()) * 35)
-    label.TextColor3 = Color3.fromRGB(255,255,255)
-    label.Font = Enum.Font.Gotham
-    label.TextSize = 14
-    label.BackgroundTransparency = 1
-    label.Parent = movementPage
-
-    local button = Instance.new("TextButton")
-    button.Text = "Change"
-    button.Size = UDim2.new(0, 100, 0, 30)
-    button.Position = UDim2.new(0, 10, 0, label.Position.Y.Offset + 35)
-    button.BackgroundColor3 = Color3.fromRGB(50,50,50)
-    button.TextColor3 = Color3.fromRGB(255,255,255)
-    button.Parent = movementPage
-
-    button.MouseButton1Click:Connect(function()
-        local newValue = tonumber(game:GetService("Players").LocalPlayer:Prompt("Enter new value:")) or defaultValue
-        label.Text = labelText .. ": " .. tostring(newValue)
-        callback(newValue)
-    end)
-end
-
--- WalkSpeed
-createMovementControl("WalkSpeed", humanoid.WalkSpeed, function(val)
-    humanoid.WalkSpeed = val
-end)
-
--- JumpPower
-createMovementControl("JumpPower", humanoid.JumpPower, function(val)
-    humanoid.JumpPower = val
-end)
-
--- Gravity
-createMovementControl("Gravity", workspace.Gravity, function(val)
-    workspace.Gravity = val
-end)
-
--- Fly Toggle
-local flyBtn = Instance.new("TextButton")
-flyBtn.Text = "Toggle Fly (OFF)"
-flyBtn.Size = UDim2.new(0, 200, 0, 40)
-flyBtn.Position = UDim2.new(0, 20, 0, 200)
-flyBtn.BackgroundColor3 = Color3.fromRGB(50,50,50)
-flyBtn.TextColor3 = Color3.new(1,1,1)
-flyBtn.Font = Enum.Font.GothamBold
-flyBtn.TextSize = 14
-flyBtn.Parent = movementPage
-
-flyBtn.MouseButton1Click:Connect(function()
-    flying = not flying
-    if flying then
-        flyBtn.Text = "Toggle Fly (ON)"
-        local player = game.Players.LocalPlayer
-        local character = player.Character or player.CharacterAdded:Wait()
-        local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
-        flyConnection = game:GetService("RunService").Heartbeat:Connect(function()
-            local move = Vector3.new()
-            if userInputService:IsKeyDown(Enum.KeyCode.W) then move = move + Vector3.new(0,0,-1) end
-            if userInputService:IsKeyDown(Enum.KeyCode.S) then move = move + Vector3.new(0,0,1) end
-            if userInputService:IsKeyDown(Enum.KeyCode.A) then move = move + Vector3.new(-1,0,0) end
-            if userInputService:IsKeyDown(Enum.KeyCode.D) then move = move + Vector3.new(1,0,0) end
-            if userInputService:IsKeyDown(Enum.KeyCode.Space) then move = move + Vector3.new(0,1,0) end
-            if userInputService:IsKeyDown(Enum.KeyCode.LeftShift) then move = move + Vector3.new(0,-1,0) end
-            humanoidRootPart.Velocity = move * 50
-        end)
-    else
-        flyBtn.Text = "Toggle Fly (OFF)"
-        if flyConnection then flyConnection:Disconnect() end
-    end
-end)
-
--------------------------
--- Floating Open Button --
--------------------------
+-- Floating Open Button
 local openBtn = Instance.new("TextButton")
 openBtn.Size = UDim2.new(0, 120, 0, 40)
 openBtn.Position = UDim2.new(0, 20, 0.8, 0)
@@ -328,11 +274,7 @@ openBtn.TextColor3 = Color3.new(1,1,1)
 openBtn.Font = Enum.Font.GothamBold
 openBtn.TextSize = 16
 openBtn.Parent = screenGui
-
-local openCorner = Instance.new("UICorner")
-openCorner.CornerRadius = UDim.new(0, 8)
-openCorner.Parent = openBtn
-
+Instance.new("UICorner", openBtn).CornerRadius = UDim.new(0, 8)
 openBtn.Visible = false
 
 -- Close & Minimize logic
@@ -340,16 +282,14 @@ closeBtn.MouseButton1Click:Connect(function()
     mainFrame.Visible = false
     openBtn.Visible = true
 end)
-
 minBtn.MouseButton1Click:Connect(function()
     mainFrame.Visible = false
     openBtn.Visible = true
 end)
-
 openBtn.MouseButton1Click:Connect(function()
     mainFrame.Visible = true
     openBtn.Visible = false
 end)
 
 -- Default page
-showPage("Travel")
+showPage("Movement")
