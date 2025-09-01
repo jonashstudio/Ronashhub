@@ -1,4 +1,4 @@
--- 🌀 Load WindUI safely
+-- 🌀 Load WindUI
 local success, WindUI = pcall(function()
     return loadstring(game:HttpGet("https://raw.githubusercontent.com/Footagesus/WindUI/refs/heads/main/Example.lua"))()
 end)
@@ -17,7 +17,7 @@ local UserInput = game:GetService("UserInputService")
 -- 🌟 Create main window
 local Window = WindUI:Window({
     Name = "⚡ Ronash Hub",
-    Size = UDim2.new(0.95,0,0.85,0),
+    Size = UDim2.new(0.95, 0, 0.85, 0),
     Theme = "Dark",
 })
 
@@ -25,16 +25,30 @@ local Window = WindUI:Window({
 local StatusPage = Window:Page({Name = "Status"})
 local AntiAFKPage = Window:Page({Name = "Anti-AFK"})
 
--- Helper function: create a slider control manually
-local function CreateSlider(page, labelText, default, min, max, callback, posY)
+-- Scrollable container for mobile
+local function makeScrollFrame(parent)
+    local frame = Instance.new("ScrollingFrame")
+    frame.Size = UDim2.new(1,0,1,0)
+    frame.Position = UDim2.new(0,0,0,0)
+    frame.CanvasSize = UDim2.new(0,0,2,0) -- initially larger to allow scrolling
+    frame.ScrollBarThickness = 10
+    frame.Parent = parent:GetMainFrame()
+    return frame
+end
+
+local statusContainer = makeScrollFrame(StatusPage)
+local y = 10
+
+-- Helper: create a slider
+local function createSlider(parent, labelText, default, min, max, callback)
     local sliderFrame = Instance.new("Frame")
     sliderFrame.Size = UDim2.new(0.9,0,0,50)
-    sliderFrame.Position = UDim2.new(0.05,0,0, posY)
+    sliderFrame.Position = UDim2.new(0.05,0,0, y)
     sliderFrame.BackgroundTransparency = 1
-    sliderFrame.Parent = page:GetMainFrame() -- WindUI Page content
+    sliderFrame.Parent = parent
 
     local label = Instance.new("TextLabel")
-    label.Text = labelText .. ": " .. default
+    label.Text = labelText.." : "..default
     label.Size = UDim2.new(1,0,0,20)
     label.Position = UDim2.new(0,0,0,0)
     label.Font = Enum.Font.GothamBold
@@ -66,25 +80,26 @@ local function CreateSlider(page, labelText, default, min, max, callback, posY)
         end
     end)
     UserInput.InputChanged:Connect(function(input)
-        if dragging and input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
-            local pos = math.clamp((input.Position.X - slider.AbsolutePosition.X)/slider.AbsoluteSize.X, 0, 1)
+        if dragging and (input.UserInputType==Enum.UserInputType.MouseMovement or input.UserInputType==Enum.UserInputType.Touch) then
+            local pos = math.clamp((input.Position.X - slider.AbsolutePosition.X)/slider.AbsoluteSize.X,0,1)
             fill.Size = UDim2.new(pos,0,1,0)
             local value = math.floor(min + (max-min)*pos)
-            label.Text = labelText .. ": " .. value
+            label.Text = labelText.." : "..value
             callback(value)
         end
     end)
+    y = y + 60
+    parent.CanvasSize = UDim2.new(0,0,0,y+20) -- update scroll canvas
 end
 
--- Add sliders to Status page
-local y = 0
-CreateSlider(StatusPage, "Speed", 16, 0, 500, function(v) humanoid.WalkSpeed = v end, y); y = y + 60
-CreateSlider(StatusPage, "Jump", 50, 0, 500, function(v) humanoid.JumpPower = v end, y); y = y + 60
-CreateSlider(StatusPage, "Gravity", 196, 0, 500, function(v) workspace.Gravity = v end, y); y = y + 60
+-- Status sliders
+createSlider(statusContainer,"Speed",16,0,500,function(v) humanoid.WalkSpeed=v end)
+createSlider(statusContainer,"Jump",50,0,500,function(v) humanoid.JumpPower=v end)
+createSlider(statusContainer,"Gravity",196,0,500,function(v) workspace.Gravity=v end)
 local flySpeed = 50
-CreateSlider(StatusPage, "Fly Speed", 50, 0, 500, function(v) flySpeed = v end, y); y = y + 60
+createSlider(statusContainer,"Fly Speed",50,0,500,function(v) flySpeed=v end)
 
--- Fly toggle button
+-- Fly toggle
 local flying = false
 local bodyVel
 local flyConn
@@ -96,7 +111,7 @@ flyBtn.BackgroundColor3 = Color3.fromRGB(50,50,50)
 flyBtn.TextColor3 = Color3.new(1,1,1)
 flyBtn.Font = Enum.Font.GothamBold
 flyBtn.TextSize = 14
-flyBtn.Parent = StatusPage:GetMainFrame()
+flyBtn.Parent = statusContainer
 flyBtn.MouseButton1Click:Connect(function()
     flying = not flying
     flyBtn.Text = "Toggle Fly ("..(flying and "ON" or "OFF")..")"
@@ -108,15 +123,15 @@ flyBtn.MouseButton1Click:Connect(function()
         flyConn = game:GetService("RunService").RenderStepped:Connect(function()
             if flying and hrp then
                 local moveDir = Vector3.zero
-                if UserInput:IsKeyDown(Enum.KeyCode.W) then moveDir += workspace.CurrentCamera.CFrame.LookVector end
-                if UserInput:IsKeyDown(Enum.KeyCode.S) then moveDir -= workspace.CurrentCamera.CFrame.LookVector end
-                if UserInput:IsKeyDown(Enum.KeyCode.A) then moveDir -= workspace.CurrentCamera.CFrame.RightVector end
-                if UserInput:IsKeyDown(Enum.KeyCode.D) then moveDir += workspace.CurrentCamera.CFrame.RightVector end
-                if UserInput:IsKeyDown(Enum.KeyCode.Space) then moveDir += Vector3.new(0,1,0) end
-                if UserInput:IsKeyDown(Enum.KeyCode.LeftShift) then moveDir -= Vector3.new(0,1,0) end
-                bodyVel.Velocity = moveDir * flySpeed
+                if UserInput:IsKeyDown(Enum.KeyCode.W) then moveDir+=workspace.CurrentCamera.CFrame.LookVector end
+                if UserInput:IsKeyDown(Enum.KeyCode.S) then moveDir-=workspace.CurrentCamera.CFrame.LookVector end
+                if UserInput:IsKeyDown(Enum.KeyCode.A) then moveDir-=workspace.CurrentCamera.CFrame.RightVector end
+                if UserInput:IsKeyDown(Enum.KeyCode.D) then moveDir+=workspace.CurrentCamera.CFrame.RightVector end
+                if UserInput:IsKeyDown(Enum.KeyCode.Space) then moveDir+=Vector3.new(0,1,0) end
+                if UserInput:IsKeyDown(Enum.KeyCode.LeftShift) then moveDir-=Vector3.new(0,1,0) end
+                bodyVel.Velocity=moveDir*flySpeed
             else
-                bodyVel.Velocity = Vector3.zero
+                bodyVel.Velocity=Vector3.zero
             end
         end)
     else
@@ -125,18 +140,18 @@ flyBtn.MouseButton1Click:Connect(function()
     end
 end)
 
--- Anti-AFK button
-local antiAFKEnabled = false
-local conn
+-- Anti-AFK page
 local afkBtn = Instance.new("TextButton")
-afkBtn.Text = "Toggle Anti-AFK"
-afkBtn.Size = UDim2.new(0.8,0,0,50)
+afkBtn.Text = "Anti-AFK: OFF"
+afkBtn.Size = UDim2.new(0.8,0,0,60)
 afkBtn.Position = UDim2.new(0.1,0,0.1,0)
 afkBtn.BackgroundColor3 = Color3.fromRGB(50,50,50)
 afkBtn.TextColor3 = Color3.new(1,1,1)
 afkBtn.Font = Enum.Font.GothamBold
 afkBtn.TextSize = 16
 afkBtn.Parent = AntiAFKPage:GetMainFrame()
+local antiAFKEnabled = false
+local conn
 afkBtn.MouseButton1Click:Connect(function()
     antiAFKEnabled = not antiAFKEnabled
     if antiAFKEnabled then
