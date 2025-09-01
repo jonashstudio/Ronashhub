@@ -1,353 +1,599 @@
--- Ronash Hub UI
-local player = game.Players.LocalPlayer
+-- Ronash Hub (Full UI)
+-- Put this LocalScript in StarterPlayerScripts (or StarterGui as LocalScript)
+
+-- Services
+local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
+local StarterGui = game:GetService("StarterGui")
+
+local player = Players.LocalPlayer
+
+-- Wait for character
+local function getCharacter()
+    local c = player.Character
+    if not c then c = player.CharacterAdded:Wait() end
+    return c
+end
+
+local character = getCharacter()
+local function getHumanoid()
+    character = getCharacter()
+    return character:FindFirstChildOfClass("Humanoid")
+end
+
+local function getHRP()
+    character = getCharacter()
+    return character:FindFirstChild("HumanoidRootPart")
+end
+
+-- Basic defaults
+local DEFAULT_WALKSPEED = 16
+local DEFAULT_JUMPPOWER = 50
+local DEFAULT_GRAVITY = 196.2
+local DEFAULT_FLY_SPEED = 50
+
+-- Create ScreenGui
 local screenGui = Instance.new("ScreenGui")
 screenGui.Name = "RonashHubUI"
 screenGui.ResetOnSpawn = false
 screenGui.Parent = player:WaitForChild("PlayerGui")
 
--- Main Frame
+-- Main frame
 local mainFrame = Instance.new("Frame")
-mainFrame.Size = UDim2.new(0, 600, 0, 350)
-mainFrame.Position = UDim2.new(0.5, -300, 0.5, -175)
-mainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+mainFrame.Size = UDim2.new(0, 640, 0, 380)
+mainFrame.Position = UDim2.new(0.5, -320, 0.5, -190)
+mainFrame.BackgroundColor3 = Color3.fromRGB(18,18,18)
 mainFrame.BorderSizePixel = 0
 mainFrame.Active = true
-mainFrame.Draggable = true
-mainFrame.Visible = true
 mainFrame.Parent = screenGui
 
 local mainCorner = Instance.new("UICorner")
-mainCorner.CornerRadius = UDim.new(0, 10)
+mainCorner.CornerRadius = UDim.new(0, 12)
 mainCorner.Parent = mainFrame
 
--- Top Bar
+-- Top bar (drag handle)
 local topBar = Instance.new("Frame")
-topBar.Size = UDim2.new(1, 0, 0, 30)
-topBar.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+topBar.Size = UDim2.new(1,0,0,36)
+topBar.Position = UDim2.new(0,0,0,0)
+topBar.BackgroundColor3 = Color3.fromRGB(28,28,28)
 topBar.BorderSizePixel = 0
 topBar.Parent = mainFrame
 
-local title = Instance.new("TextLabel")
-title.Text = "⚡ Ronash Hub"
-title.Size = UDim2.new(1, -60, 1, 0)
-title.Position = UDim2.new(0, 10, 0, 0)
-title.TextXAlignment = Enum.TextXAlignment.Left
-title.Font = Enum.Font.GothamBold
-title.TextSize = 14
-title.TextColor3 = Color3.new(1,1,1)
-title.BackgroundTransparency = 1
-title.Parent = topBar
+local topTitle = Instance.new("TextLabel")
+topTitle.Text = "⚡ Ronash Hub"
+topTitle.Size = UDim2.new(1, -100, 1, 0)
+topTitle.Position = UDim2.new(0,16,0,0)
+topTitle.BackgroundTransparency = 1
+topTitle.TextXAlignment = Enum.TextXAlignment.Left
+topTitle.Font = Enum.Font.GothamBold
+topTitle.TextSize = 16
+topTitle.TextColor3 = Color3.new(1,1,1)
+topTitle.Parent = topBar
 
--- Close Button
+-- Close button
 local closeBtn = Instance.new("TextButton")
-closeBtn.Size = UDim2.new(0, 30, 1, 0)
-closeBtn.Position = UDim2.new(1, -30, 0, 0)
+closeBtn.Size = UDim2.new(0,36,0,36)
+closeBtn.Position = UDim2.new(1, -40, 0, 0)
 closeBtn.Text = "❌"
-closeBtn.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
-closeBtn.TextColor3 = Color3.new(1,1,1)
 closeBtn.Font = Enum.Font.GothamBold
-closeBtn.TextSize = 14
+closeBtn.TextColor3 = Color3.new(1,1,1)
+closeBtn.BackgroundColor3 = Color3.fromRGB(40,40,40)
 closeBtn.Parent = topBar
+Instance.new("UICorner", closeBtn).CornerRadius = UDim.new(0,6)
+
+-- Minimize (we'll just close to floating button for minimizing)
+local minBtn = Instance.new("TextButton")
+minBtn.Size = UDim2.new(0,36,0,36)
+minBtn.Position = UDim2.new(1, -80, 0, 0)
+minBtn.Text = "➖"
+minBtn.Font = Enum.Font.GothamBold
+minBtn.TextColor3 = Color3.new(1,1,1)
+minBtn.BackgroundColor3 = Color3.fromRGB(40,40,40)
+minBtn.Parent = topBar
+Instance.new("UICorner", minBtn).CornerRadius = UDim.new(0,6)
 
 -- Sidebar
 local sidebar = Instance.new("Frame")
-sidebar.Size = UDim2.new(0, 150, 1, -30)
-sidebar.Position = UDim2.new(0, 0, 0, 30)
-sidebar.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+sidebar.Size = UDim2.new(0,180,1,-36)
+sidebar.Position = UDim2.new(0,0,0,36)
+sidebar.BackgroundColor3 = Color3.fromRGB(24,24,24)
 sidebar.BorderSizePixel = 0
 sidebar.Parent = mainFrame
+Instance.new("UICorner", sidebar).CornerRadius = UDim.new(0,10)
 
-local sidebarCorner = Instance.new("UICorner")
-sidebarCorner.CornerRadius = UDim.new(0, 10)
-sidebarCorner.Parent = sidebar
-
--- Content Frame
-local contentFrame = Instance.new("Frame")
-contentFrame.Size = UDim2.new(1, -150, 1, -30)
-contentFrame.Position = UDim2.new(0, 150, 0, 30)
-contentFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-contentFrame.BorderSizePixel = 0
-contentFrame.Parent = mainFrame
-
-local contentCorner = Instance.new("UICorner")
-contentCorner.CornerRadius = UDim.new(0, 10)
-contentCorner.Parent = contentFrame
+-- Content area
+local content = Instance.new("Frame")
+content.Size = UDim2.new(1, -180, 1, -36)
+content.Position = UDim2.new(0,180,0,36)
+content.BackgroundColor3 = Color3.fromRGB(26,26,26)
+content.BorderSizePixel = 0
+content.Parent = mainFrame
+Instance.new("UICorner", content).CornerRadius = UDim.new(0,10)
 
 -- Sidebar button creator
-local function createSidebarButton(name, order, callback)
-    local button = Instance.new("TextButton")
-    button.Size = UDim2.new(1, -10, 0, 35)
-    button.Position = UDim2.new(0, 5, 0, 10 + (order * 40))
-    button.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-    button.Text = name
-    button.TextColor3 = Color3.fromRGB(255, 255, 255)
-    button.Font = Enum.Font.GothamBold
-    button.TextSize = 14
-    button.Parent = sidebar
-
-    local btnCorner = Instance.new("UICorner")
-    btnCorner.CornerRadius = UDim.new(0, 6)
-    btnCorner.Parent = button
-
-    button.MouseEnter:Connect(function()
-        button.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
-    end)
-    button.MouseLeave:Connect(function()
-        button.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-    end)
-
-    button.MouseButton1Click:Connect(callback)
+local function makeSidebarButton(text, y, parent, onClick)
+    local btn = Instance.new("TextButton")
+    btn.Size = UDim2.new(1, -20, 0, 44)
+    btn.Position = UDim2.new(0, 10, 0, y)
+    btn.BackgroundColor3 = Color3.fromRGB(35,35,35)
+    btn.Text = text
+    btn.Font = Enum.Font.GothamBold
+    btn.TextColor3 = Color3.new(1,1,1)
+    btn.TextSize = 14
+    btn.Parent = parent
+    Instance.new("UICorner", btn).CornerRadius = UDim.new(0,8)
+    btn.MouseButton1Click:Connect(onClick)
+    return btn
 end
 
--- Pages
+-- Pages system
 local pages = {}
 local function createPage(name)
-    local page = Instance.new("Frame")
-    page.Size = UDim2.new(1, 0, 1, 0)
-    page.BackgroundTransparency = 1
-    page.Visible = false
-    page.Parent = contentFrame
-    pages[name] = page
-    return page
+    local p = Instance.new("Frame")
+    p.Size = UDim2.new(1,0,1,0)
+    p.Position = UDim2.new(0,0,0,0)
+    p.BackgroundTransparency = 1
+    p.Visible = false
+    p.Parent = content
+    pages[name] = p
+    return p
 end
 local function showPage(name)
-    for _, page in pairs(pages) do
-        page.Visible = false
-    end
-    if pages[name] then
-        pages[name].Visible = true
-    end
+    for k,v in pairs(pages) do v.Visible = false end
+    if pages[name] then pages[name].Visible = true end
 end
 
--- Functions to create controls
-local function createSetting(page, labelText, defaultValue, minValue, maxValue, step, applyFunc)
-    local label = Instance.new("TextLabel")
-    label.Text = labelText .. ": " .. defaultValue
-    label.Size = UDim2.new(0, 200, 0, 30)
-    label.Position = UDim2.new(0, 20, 0, #page:GetChildren() * 40)
-    label.TextColor3 = Color3.new(1,1,1)
-    label.Font = Enum.Font.GothamBold
-    label.TextSize = 14
-    label.BackgroundTransparency = 1
-    label.Parent = page
-
-    local minus = Instance.new("TextButton")
-    minus.Size = UDim2.new(0, 30, 0, 30)
-    minus.Position = UDim2.new(0, 230, 0, #page:GetChildren() * 40)
-    minus.Text = "-"
-    minus.BackgroundColor3 = Color3.fromRGB(60,60,60)
-    minus.TextColor3 = Color3.new(1,1,1)
-    minus.Parent = page
-
-    local plus = Instance.new("TextButton")
-    plus.Size = UDim2.new(0, 30, 0, 30)
-    plus.Position = UDim2.new(0, 270, 0, #page:GetChildren() * 40)
-    plus.Text = "+"
-    plus.BackgroundColor3 = Color3.fromRGB(60,60,60)
-    plus.TextColor3 = Color3.new(1,1,1)
-    plus.Parent = page
-
-    local value = defaultValue
-
-    local function updateLabel()
-        label.Text = labelText .. ": " .. tostring(value)
-        applyFunc(value)
-    end
-    updateLabel()
-
-    plus.MouseButton1Click:Connect(function()
-        value = math.min(maxValue, value + step)
-        updateLabel()
-    end)
-    minus.MouseButton1Click:Connect(function()
-        value = math.max(minValue, value - step)
-        updateLabel()
-    end)
-end
-
--- Pages
+-- Create pages: Status, Anti-AFK, Movement, Visual, Shop, Misc placeholders
 local statusPage = createPage("Status")
-local speedPage = createPage("Speed")
-local jumpPage = createPage("Jump")
-local gravityPage = createPage("Gravity")
-local flyPage = createPage("Fly")
+local antiAFKPage = createPage("AntiAFK")
+local movementPage = createPage("Movement")
+local visualPage = createPage("Visual")
+local shopPage = createPage("Shop")
+local miscPage = createPage("Misc")
 
--- Sidebar buttons
-createSidebarButton("Status", 0, function() showPage("Status") end)
-createSidebarButton("Speed", 1, function() showPage("Speed") end)
-createSidebarButton("Jump", 2, function() showPage("Jump") end)
-createSidebarButton("Gravity", 3, function() showPage("Gravity") end)
-createSidebarButton("Fly", 4, function() showPage("Fly") end)
+-- Sidebar buttons similar to screenshot (we'll create several, most link to placeholder pages)
+local y = 10
+makeSidebarButton("Discord", y, sidebar, function() showPage("Misc") end); y = y + 54
+makeSidebarButton("Farm", y, sidebar, function() showPage("Misc") end); y = y + 54
+makeSidebarButton("Sea", y, sidebar, function() showPage("Misc") end); y = y + 54
+makeSidebarButton("Islands", y, sidebar, function() showPage("Misc") end); y = y + 54
+makeSidebarButton("Quests/Items", y, sidebar, function() showPage("Misc") end); y = y + 54
+makeSidebarButton("Fruit/Raid", y, sidebar, function() showPage("Misc") end); y = y + 54
+makeSidebarButton("Teleport", y, sidebar, function() showPage("Misc") end); y = y + 54
+makeSidebarButton("Status", y, sidebar, function() showPage("Status") end); y = y + 54
+makeSidebarButton("Visual", y, sidebar, function() showPage("Visual") end); y = y + 54
+makeSidebarButton("Shop", y, sidebar, function() showPage("Shop") end); y = y + 54
+makeSidebarButton("Anti-AFK", y, sidebar, function() showPage("AntiAFK") end); y = y + 54
+makeSidebarButton("Misc", y, sidebar, function() showPage("Misc") end); y = y + 54
 
--- Status Page (AFK Toggle)
-local afkLabel = Instance.new("TextLabel")
-afkLabel.Text = "AFK Status: OFF"
-afkLabel.Size = UDim2.new(1, -20, 0, 40)
-afkLabel.Position = UDim2.new(0, 10, 0, 10)
-afkLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-afkLabel.Font = Enum.Font.GothamBold
-afkLabel.TextSize = 18
-afkLabel.BackgroundTransparency = 1
-afkLabel.Parent = statusPage
+-- ========== STATUS PAGE ==========
+do
+    local title = Instance.new("TextLabel")
+    title.Text = "Status"
+    title.Font = Enum.Font.GothamBold
+    title.TextSize = 20
+    title.TextColor3 = Color3.new(1,1,1)
+    title.BackgroundTransparency = 1
+    title.Position = UDim2.new(0, 16, 0, 12)
+    title.Size = UDim2.new(0, 300, 0, 28)
+    title.Parent = statusPage
 
-local afkButton = Instance.new("TextButton")
-afkButton.Text = "Toggle AFK"
-afkButton.Size = UDim2.new(0, 200, 0, 40)
-afkButton.Position = UDim2.new(0, 20, 0, 60)
-afkButton.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-afkButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-afkButton.Font = Enum.Font.GothamBold
-afkButton.TextSize = 14
-afkButton.Parent = statusPage
+    local info = Instance.new("TextLabel")
+    info.Text = "Player: "..player.Name
+    info.Font = Enum.Font.Gotham
+    info.TextSize = 14
+    info.TextColor3 = Color3.fromRGB(200,200,200)
+    info.BackgroundTransparency = 1
+    info.Position = UDim2.new(0, 16, 0, 48)
+    info.Size = UDim2.new(0, 400, 0, 20)
+    info.Parent = statusPage
+end
 
-local afkCorner = Instance.new("UICorner")
-afkCorner.CornerRadius = UDim.new(0, 6)
-afkCorner.Parent = afkButton
+-- ========== ANTI-AFK PAGE ==========
+do
+    local title = Instance.new("TextLabel")
+    title.Text = "Anti-AFK"
+    title.Font = Enum.Font.GothamBold
+    title.TextSize = 20
+    title.TextColor3 = Color3.new(1,1,1)
+    title.BackgroundTransparency = 1
+    title.Position = UDim2.new(0, 16, 0, 12)
+    title.Size = UDim2.new(0, 300, 0, 28)
+    title.Parent = antiAFKPage
 
-local isAFK = false
-afkButton.MouseButton1Click:Connect(function()
-    isAFK = not isAFK
-    if isAFK then
-        afkLabel.Text = "AFK Status: ON"
-    else
-        afkLabel.Text = "AFK Status: OFF"
-    end
-end)
+    local statusLabel = Instance.new("TextLabel")
+    statusLabel.Text = "Status: OFF"
+    statusLabel.Font = Enum.Font.Gotham
+    statusLabel.TextSize = 16
+    statusLabel.TextColor3 = Color3.fromRGB(200,200,200)
+    statusLabel.BackgroundTransparency = 1
+    statusLabel.Position = UDim2.new(0, 16, 0, 56)
+    statusLabel.Size = UDim2.new(0, 300, 0, 24)
+    statusLabel.Parent = antiAFKPage
 
--- Speed, Jump, Gravity Pages
-createSetting(speedPage, "Speed", 16, 16, 200, 5, function(v)
-    if player.Character and player.Character:FindFirstChildOfClass("Humanoid") then
-        player.Character.Humanoid.WalkSpeed = v
-    end
-end)
-createSetting(jumpPage, "Jump", 50, 50, 300, 5, function(v)
-    if player.Character and player.Character:FindFirstChildOfClass("Humanoid") then
-        player.Character.Humanoid.JumpPower = v
-    end
-end)
-createSetting(gravityPage, "Gravity", 196, 0, 400, 10, function(v)
-    workspace.Gravity = v
-end)
+    local toggleBtn = Instance.new("TextButton")
+    toggleBtn.Text = "Enable Anti-AFK"
+    toggleBtn.Size = UDim2.new(0, 180, 0, 40)
+    toggleBtn.Position = UDim2.new(0, 16, 0, 92)
+    toggleBtn.Font = Enum.Font.GothamBold
+    toggleBtn.TextSize = 14
+    toggleBtn.TextColor3 = Color3.new(1,1,1)
+    toggleBtn.BackgroundColor3 = Color3.fromRGB(60,60,60)
+    toggleBtn.Parent = antiAFKPage
+    Instance.new("UICorner", toggleBtn).CornerRadius = UDim.new(0,8)
 
--- Fly Page
-local flying = false
-local flySpeed = 50
+    local antiAFKEnabled = false
+    local antiAFKConn = nil
 
-local flyLabel = Instance.new("TextLabel")
-flyLabel.Text = "Fly Speed: " .. flySpeed
-flyLabel.Size = UDim2.new(0, 200, 0, 30)
-flyLabel.Position = UDim2.new(0, 20, 0, 10)
-flyLabel.TextColor3 = Color3.new(1,1,1)
-flyLabel.Font = Enum.Font.GothamBold
-flyLabel.TextSize = 14
-flyLabel.BackgroundTransparency = 1
-flyLabel.Parent = flyPage
+    local VirtualUser = game:GetService("VirtualUser")
+    toggleBtn.MouseButton1Click:Connect(function()
+        antiAFKEnabled = not antiAFKEnabled
+        if antiAFKEnabled then
+            -- Connect Idled and run VirtualUser actions
+            if antiAFKConn then antiAFKConn:Disconnect() end
+            antiAFKConn = player.Idled:Connect(function()
+                -- each time Idled fires, simulate input
+                VirtualUser:CaptureController()
+                VirtualUser:ClickButton2(Vector2.new())
+            end)
+            statusLabel.Text = "Status: ON"
+            toggleBtn.Text = "Disable Anti-AFK"
+            StarterGui:SetCore("SendNotification", {
+                Title = "Anti-AFK",
+                Text = "Enabled",
+                Duration = 3
+            })
+        else
+            if antiAFKConn then antiAFKConn:Disconnect(); antiAFKConn = nil end
+            statusLabel.Text = "Status: OFF"
+            toggleBtn.Text = "Enable Anti-AFK"
+            StarterGui:SetCore("SendNotification", {
+                Title = "Anti-AFK",
+                Text = "Disabled",
+                Duration = 3
+            })
+        end
+    end)
+end
 
-local flyMinus = Instance.new("TextButton")
-flyMinus.Size = UDim2.new(0, 30, 0, 30)
-flyMinus.Position = UDim2.new(0, 230, 0, 10)
-flyMinus.Text = "-"
-flyMinus.BackgroundColor3 = Color3.fromRGB(60,60,60)
-flyMinus.TextColor3 = Color3.new(1,1,1)
-flyMinus.Parent = flyPage
+-- ========== MOVEMENT PAGE ==========
+do
+    local title = Instance.new("TextLabel")
+    title.Text = "Movement"
+    title.Font = Enum.Font.GothamBold
+    title.TextSize = 20
+    title.TextColor3 = Color3.new(1,1,1)
+    title.BackgroundTransparency = 1
+    title.Position = UDim2.new(0, 16, 0, 12)
+    title.Size = UDim2.new(0, 300, 0, 28)
+    title.Parent = movementPage
 
-local flyPlus = Instance.new("TextButton")
-flyPlus.Size = UDim2.new(0, 30, 0, 30)
-flyPlus.Position = UDim2.new(0, 270, 0, 10)
-flyPlus.Text = "+"
-flyPlus.BackgroundColor3 = Color3.fromRGB(60,60,60)
-flyPlus.TextColor3 = Color3.new(1,1,1)
-flyPlus.Parent = flyPage
+    -- Helper to create a stat control with - and + and live text
+    local function makeStat(parent, labelText, startValue, minV, maxV, step, applyFunc, yOffset)
+        local lbl = Instance.new("TextLabel")
+        lbl.Text = labelText .. ": " .. tostring(startValue)
+        lbl.Font = Enum.Font.GothamBold
+        lbl.TextSize = 16
+        lbl.TextColor3 = Color3.new(1,1,1)
+        lbl.BackgroundTransparency = 1
+        lbl.Position = UDim2.new(0, 16, 0, yOffset)
+        lbl.Size = UDim2.new(0, 330, 0, 26)
+        lbl.Parent = parent
 
-flyMinus.MouseButton1Click:Connect(function()
-    flySpeed = math.max(10, flySpeed - 5)
-    flyLabel.Text = "Fly Speed: " .. flySpeed
-end)
-flyPlus.MouseButton1Click:Connect(function()
-    flySpeed = math.min(200, flySpeed + 5)
-    flyLabel.Text = "Fly Speed: " .. flySpeed
-end)
+        local minus = Instance.new("TextButton")
+        minus.Text = "-"
+        minus.Size = UDim2.new(0, 36, 0, 28)
+        minus.Position = UDim2.new(0, 360, 0, yOffset)
+        minus.BackgroundColor3 = Color3.fromRGB(60,60,60)
+        minus.Font = Enum.Font.GothamBold
+        minus.TextSize = 18
+        minus.TextColor3 = Color3.new(1,1,1)
+        minus.Parent = parent
+        Instance.new("UICorner", minus).CornerRadius = UDim.new(0,6)
 
-local flyBtn = Instance.new("TextButton")
-flyBtn.Text = "Toggle Fly"
-flyBtn.Size = UDim2.new(0, 200, 0, 40)
-flyBtn.Position = UDim2.new(0, 20, 0, 60)
-flyBtn.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-flyBtn.TextColor3 = Color3.new(1,1,1)
-flyBtn.Font = Enum.Font.GothamBold
-flyBtn.TextSize = 14
-flyBtn.Parent = flyPage
+        local plus = Instance.new("TextButton")
+        plus.Text = "+"
+        plus.Size = UDim2.new(0, 36, 0, 28)
+        plus.Position = UDim2.new(0, 408, 0, yOffset)
+        plus.BackgroundColor3 = Color3.fromRGB(60,60,60)
+        plus.Font = Enum.Font.GothamBold
+        plus.TextSize = 18
+        plus.TextColor3 = Color3.new(1,1,1)
+        plus.Parent = parent
+        Instance.new("UICorner", plus).CornerRadius = UDim.new(0,6)
 
-local UIS = game:GetService("UserInputService")
-local RunService = game:GetService("RunService")
-local flyConnection
+        local value = startValue
+        local function updateDisplay()
+            lbl.Text = labelText .. ": " .. tostring(value)
+            pcall(function() applyFunc(value) end)
+        end
 
-flyBtn.MouseButton1Click:Connect(function()
-    flying = not flying
-    if flying then
-        local char = player.Character
-        local hrp = char and char:FindFirstChild("HumanoidRootPart")
-        if not hrp then return end
-        local humanoid = char:FindFirstChildOfClass("Humanoid")
-        if humanoid then humanoid.PlatformStand = true end
-
-        flyConnection = RunService.RenderStepped:Connect(function()
-            local cam = workspace.CurrentCamera
-            local moveDir = Vector3.new()
-            if UIS:IsKeyDown(Enum.KeyCode.W) then
-                moveDir = moveDir + cam.CFrame.LookVector
-            end
-            if UIS:IsKeyDown(Enum.KeyCode.S) then
-                moveDir = moveDir - cam.CFrame.LookVector
-            end
-            if UIS:IsKeyDown(Enum.KeyCode.A) then
-                moveDir = moveDir - cam.CFrame.RightVector
-            end
-            if UIS:IsKeyDown(Enum.KeyCode.D) then
-                moveDir = moveDir + cam.CFrame.RightVector
-            end
-            if UIS:IsKeyDown(Enum.KeyCode.Space) then
-                moveDir = moveDir + Vector3.new(0,1,0)
-            end
-            if UIS:IsKeyDown(Enum.KeyCode.LeftShift) then
-                moveDir = moveDir - Vector3.new(0,1,0)
-            end
-            hrp.Velocity = moveDir * flySpeed
+        minus.MouseButton1Click:Connect(function()
+            value = math.max(minV, value - step)
+            updateDisplay()
         end)
-    else
-        if flyConnection then flyConnection:Disconnect() end
-        local humanoid = player.Character and player.Character:FindFirstChildOfClass("Humanoid")
-        if humanoid then humanoid.PlatformStand = false end
-        if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-            player.Character.HumanoidRootPart.Velocity = Vector3.new(0,0,0)
+        plus.MouseButton1Click:Connect(function()
+            value = math.min(maxV, value + step)
+            updateDisplay()
+        end)
+
+        updateDisplay()
+        return {label = lbl, set = function(v) value = math.clamp(v, minV, maxV); updateDisplay() end}
+    end
+
+    -- Ensure humanoid exists and reapply on respawn
+    local function safeGetHumanoid()
+        local h = getHumanoid()
+        if h then
+            pcall(function() h.UseJumpPower = true end)
+        end
+        return h
+    end
+
+    -- WalkSpeed control
+    local speedControl = makeStat(movementPage, "WalkSpeed", DEFAULT_WALKSPEED, 8, 300, 2, function(v)
+        local h = safeGetHumanoid()
+        if h then h.WalkSpeed = v end
+    end, 56)
+
+    -- JumpPower control
+    local jumpControl = makeStat(movementPage, "JumpPower", DEFAULT_JUMPPOWER, 10, 500, 5, function(v)
+        local h = safeGetHumanoid()
+        if h then
+            pcall(function() h.UseJumpPower = true end)
+            h.JumpPower = v
+        end
+    end, 110)
+
+    -- Gravity control
+    local gravControl = makeStat(movementPage, "Gravity", DEFAULT_GRAVITY, 50, 500, 10, function(v)
+        workspace.Gravity = v
+    end, 164)
+
+    -- Fly controls
+    local flyLabel = Instance.new("TextLabel")
+    flyLabel.Text = "Fly Speed: " .. DEFAULT_FLY_SPEED
+    flyLabel.Font = Enum.Font.GothamBold
+    flyLabel.TextSize = 16
+    flyLabel.TextColor3 = Color3.new(1,1,1)
+    flyLabel.BackgroundTransparency = 1
+    flyLabel.Position = UDim2.new(0, 16, 0, 216)
+    flyLabel.Size = UDim2.new(0, 330, 0, 26)
+    flyLabel.Parent = movementPage
+
+    local flyMinus = Instance.new("TextButton")
+    flyMinus.Text = "-"
+    flyMinus.Size = UDim2.new(0, 36, 0, 28)
+    flyMinus.Position = UDim2.new(0, 360, 0, 216)
+    flyMinus.BackgroundColor3 = Color3.fromRGB(60,60,60)
+    flyMinus.Font = Enum.Font.GothamBold
+    flyMinus.TextSize = 18
+    flyMinus.TextColor3 = Color3.new(1,1,1)
+    flyMinus.Parent = movementPage
+    Instance.new("UICorner", flyMinus).CornerRadius = UDim.new(0,6)
+
+    local flyPlus = Instance.new("TextButton")
+    flyPlus.Text = "+"
+    flyPlus.Size = UDim2.new(0, 36, 0, 28)
+    flyPlus.Position = UDim2.new(0, 408, 0, 216)
+    flyPlus.BackgroundColor3 = Color3.fromRGB(60,60,60)
+    flyPlus.Font = Enum.Font.GothamBold
+    flyPlus.TextSize = 18
+    flyPlus.TextColor3 = Color3.new(1,1,1)
+    flyPlus.Parent = movementPage
+    Instance.new("UICorner", flyPlus).CornerRadius = UDim.new(0,6)
+
+    local flySpeed = DEFAULT_FLY_SPEED
+
+    flyMinus.MouseButton1Click:Connect(function()
+        flySpeed = math.max(10, flySpeed - 5)
+        flyLabel.Text = "Fly Speed: "..flySpeed
+    end)
+    flyPlus.MouseButton1Click:Connect(function()
+        flySpeed = math.min(500, flySpeed + 5)
+        flyLabel.Text = "Fly Speed: "..flySpeed
+    end)
+
+    local flyToggle = Instance.new("TextButton")
+    flyToggle.Text = "Toggle Fly"
+    flyToggle.Size = UDim2.new(0, 200, 0, 40)
+    flyToggle.Position = UDim2.new(0, 16, 0, 260)
+    flyToggle.BackgroundColor3 = Color3.fromRGB(60,60,60)
+    flyToggle.Font = Enum.Font.GothamBold
+    flyToggle.TextSize = 14
+    flyToggle.TextColor3 = Color3.new(1,1,1)
+    flyToggle.Parent = movementPage
+    Instance.new("UICorner", flyToggle).CornerRadius = UDim.new(0,8)
+
+    local flyActive = false
+    local bv, bg -- BodyVelocity & BodyGyro
+
+    local function startFly()
+        if flyActive then return end
+        flyActive = true
+        local root = getHRP()
+        if not root then return end
+        -- Ensure no lingering parts
+        if bv then bv:Destroy() end
+        if bg then bg:Destroy() end
+
+        bv = Instance.new("BodyVelocity")
+        bv.MaxForce = Vector3.new(1e5, 1e5, 1e5)
+        bv.Velocity = Vector3.new(0,0,0)
+        bv.Parent = root
+
+        bg = Instance.new("BodyGyro")
+        bg.MaxTorque = Vector3.new(1e5, 1e5, 1e5)
+        bg.CFrame = root.CFrame
+        bg.Parent = root
+
+        StarterGui:SetCore("SendNotification", {Title="Fly", Text="Enabled", Duration=2})
+
+        -- Move loop
+        spawn(function()
+            while flyActive and bv and bg and root and root.Parent do
+                RunService.Stepped:Wait()
+                local cam = workspace.CurrentCamera
+                local move = Vector3.new()
+                if UserInputService:IsKeyDown(Enum.KeyCode.W) then move = move + cam.CFrame.LookVector end
+                if UserInputService:IsKeyDown(Enum.KeyCode.S) then move = move - cam.CFrame.LookVector end
+                if UserInputService:IsKeyDown(Enum.KeyCode.A) then move = move - cam.CFrame.RightVector end
+                if UserInputService:IsKeyDown(Enum.KeyCode.D) then move = move + cam.CFrame.RightVector end
+                if UserInputService:IsKeyDown(Enum.KeyCode.Space) then move = move + Vector3.new(0,1,0) end
+                if UserInputService:IsKeyDown(Enum.KeyCode.LeftShift) then move = move - Vector3.new(0,1,0) end
+
+                if move.Magnitude > 0.001 then
+                    bv.Velocity = move.Unit * flySpeed
+                else
+                    bv.Velocity = Vector3.new(0,0,0)
+                end
+                bg.CFrame = cam.CFrame
+            end
+        end)
+    end
+
+    local function stopFly()
+        flyActive = false
+        if bv then bv:Destroy(); bv = nil end
+        if bg then bg:Destroy(); bg = nil end
+        StarterGui:SetCore("SendNotification", {Title="Fly", Text="Disabled", Duration=2})
+    end
+
+    flyToggle.MouseButton1Click:Connect(function()
+        if flyActive then stopFly() else startFly() end
+    end)
+end
+
+-- Reapply default settings function (reset button)
+local resetBtn = Instance.new("TextButton")
+resetBtn.Text = "Reset to Defaults"
+resetBtn.Size = UDim2.new(0, 180, 0, 36)
+resetBtn.Position = UDim2.new(0, 16, 0, 320)
+resetBtn.BackgroundColor3 = Color3.fromRGB(60,60,60)
+resetBtn.Font = Enum.Font.GothamBold
+resetBtn.TextSize = 14
+resetBtn.TextColor3 = Color3.new(1,1,1)
+resetBtn.Parent = movementPage
+Instance.new("UICorner", resetBtn).CornerRadius = UDim.new(0,8)
+
+resetBtn.MouseButton1Click:Connect(function()
+    -- Reset values
+    local h = getHumanoid()
+    if h then
+        h.WalkSpeed = DEFAULT_WALKSPEED
+        pcall(function() h.UseJumpPower = true end)
+        h.JumpPower = DEFAULT_JUMPPOWER
+    end
+    workspace.Gravity = DEFAULT_GRAVITY
+    -- Stop fly if active
+    -- find and destroy BodyVelocity/BodyGyro left by our code:
+    local hrp = getHRP()
+    if hrp then
+        for _, child in pairs(hrp:GetChildren()) do
+            if child:IsA("BodyVelocity") or child:IsA("BodyGyro") then child:Destroy() end
         end
     end
+    StarterGui:SetCore("SendNotification", {Title="Ronash Hub", Text="Defaults restored", Duration=3})
 end)
 
--- Floating Circle Open Button
+-- Floating circular draggable "Ronash" button
 local openBtn = Instance.new("TextButton")
-openBtn.Size = UDim2.new(0, 80, 0, 80)
-openBtn.Position = UDim2.new(0, 20, 0.8, 0)
+openBtn.Size = UDim2.new(0, 72, 0, 72)
+openBtn.Position = UDim2.new(0, 20, 0.78, 0)
 openBtn.Text = "Ronash"
-openBtn.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
-openBtn.TextColor3 = Color3.new(1,1,1)
 openBtn.Font = Enum.Font.GothamBold
 openBtn.TextSize = 14
-openBtn.Active = true
-openBtn.Draggable = true
+openBtn.TextColor3 = Color3.new(1,1,1)
+openBtn.BackgroundColor3 = Color3.fromRGB(32,32,32)
 openBtn.Parent = screenGui
+Instance.new("UICorner", openBtn).CornerRadius = UDim.new(1,0) -- circle
 
-local openCorner = Instance.new("UICorner")
-openCorner.CornerRadius = UDim.new(1, 0)
-openCorner.Parent = openBtn
+-- Draggable behavior (manual, because Draggable property is deprecated)
+do
+    openBtn.Active = true
+    local dragging = false
+    local dragInput, dragStart, startPos
 
-openBtn.Visible = false
+    openBtn.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            dragging = true
+            dragStart = input.Position
+            startPos = openBtn.Position
+            input.Changed:Connect(function()
+                if input.UserInputState == Enum.UserInputState.End then
+                    dragging = false
+                end
+            end)
+        end
+    end)
 
--- Close logic
+    openBtn.InputChanged:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseMovement then
+            dragInput = input
+        end
+    end)
+
+    UserInputService.InputChanged:Connect(function(input)
+        if input == dragInput and dragging then
+            local delta = input.Position - dragStart
+            openBtn.Position = UDim2.new(
+                startPos.X.Scale, startPos.X.Offset + delta.X,
+                startPos.Y.Scale, startPos.Y.Offset + delta.Y
+            )
+        end
+    end)
+end
+
+-- Open/close logic
+openBtn.MouseButton1Click:Connect(function()
+    mainFrame.Visible = true
+    openBtn.Visible = false
+end)
+
 closeBtn.MouseButton1Click:Connect(function()
     mainFrame.Visible = false
     openBtn.Visible = true
 end)
 
+-- Draggable mainFrame via topBar (manual)
+do
+    local dragging = false
+    local dragInput, dragStart, startPos
+    topBar.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            dragging = true
+            dragStart = input.Position
+            startPos = mainFrame.Position
+            input.Changed:Connect(function()
+                if input.UserInputState == Enum.UserInputState.End then
+                    dragging = false
+                end
+            end)
+        end
+    end)
+    topBar.InputChanged:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseMovement then
+            dragInput = input
+        end
+    end)
+    UserInputService.InputChanged:Connect(function(input)
+        if input == dragInput and dragging then
+            local delta = input.Position - dragStart
+            mainFrame.Position = UDim2.new(
+                startPos.X.Scale, startPos.X.Offset + delta.X,
+                startPos.Y.Scale, startPos.Y.Offset + delta.Y
+            )
+        end
+    end)
+end
+
 -- Default page
 showPage("Status")
+
+-- Notify loaded
+StarterGui:SetCore("SendNotification", {
+    Title = "Ronash Hub",
+    Text = "Loaded — open with the Ronash button when closed.",
+    Duration = 4
+})
