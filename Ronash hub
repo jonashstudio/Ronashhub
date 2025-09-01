@@ -1,0 +1,293 @@
+-- ScreenGui
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "ronashhub"
+screenGui.ResetOnSpawn = false
+screenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
+
+-- Main Frame
+local mainFrame = Instance.new("Frame")
+mainFrame.Size = UDim2.new(0, 600, 0, 350)
+mainFrame.Position = UDim2.new(0.5, -300, 0.5, -175)
+mainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+mainFrame.BorderSizePixel = 0
+mainFrame.Active = true
+mainFrame.Visible = true
+mainFrame.Parent = screenGui
+
+local mainCorner = Instance.new("UICorner")
+mainCorner.CornerRadius = UDim.new(0, 10)
+mainCorner.Parent = mainFrame
+
+-- Top Bar
+local topBar = Instance.new("Frame")
+topBar.Size = UDim2.new(1, 0, 0, 30)
+topBar.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+topBar.BorderSizePixel = 0
+topBar.Parent = mainFrame
+
+local title = Instance.new("TextLabel")
+ title.Text = "🎓 ronash Hub"
+title.Size = UDim2.new(1, -60, 1, 0)
+title.Position = UDim2.new(0, 10, 0, 0)
+title.TextXAlignment = Enum.TextXAlignment.Left
+title.Font = Enum.Font.GothamBold
+title.TextSize = 14
+title.TextColor3 = Color3.new(1,1,1)
+title.BackgroundTransparency = 1
+title.Parent = topBar
+
+-- Close Button
+local closeBtn = Instance.new("TextButton")
+closeBtn.Size = UDim2.new(0, 30, 1, 0)
+closeBtn.Position = UDim2.new(1, -30, 0, 0)
+closeBtn.Text = "❌"
+closeBtn.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+closeBtn.TextColor3 = Color3.new(1,1,1)
+closeBtn.Font = Enum.Font.GothamBold
+closeBtn.TextSize = 14
+closeBtn.Parent = topBar
+
+-- Minimize Button
+local minBtn = Instance.new("TextButton")
+minBtn.Size = UDim2.new(0, 30, 1, 0)
+minBtn.Position = UDim2.new(1, -60, 0, 0)
+minBtn.Text = "➖"
+minBtn.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+minBtn.TextColor3 = Color3.new(1,1,1)
+minBtn.Font = Enum.Font.GothamBold
+minBtn.TextSize = 14
+minBtn.Parent = topBar
+
+-- Sidebar
+local sidebar = Instance.new("Frame")
+sidebar.Size = UDim2.new(0, 150, 1, -30)
+sidebar.Position = UDim2.new(0, 0, 0, 30)
+sidebar.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+sidebar.BorderSizePixel = 0
+sidebar.Parent = mainFrame
+
+local sidebarCorner = Instance.new("UICorner")
+sidebarCorner.CornerRadius = UDim.new(0, 10)
+sidebarCorner.Parent = sidebar
+
+-- Content Frame
+local contentFrame = Instance.new("Frame")
+contentFrame.Size = UDim2.new(1, -150, 1, -30)
+contentFrame.Position = UDim2.new(0, 150, 0, 30)
+contentFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+contentFrame.BorderSizePixel = 0
+contentFrame.Parent = mainFrame
+
+local contentCorner = Instance.new("UICorner")
+contentCorner.CornerRadius = UDim.new(0, 10)
+contentCorner.Parent = contentFrame
+
+-- Sidebar button creator
+local function createSidebarButton(name, order, callback)
+    local button = Instance.new("TextButton")
+    button.Size = UDim2.new(1, -10, 0, 35)
+    button.Position = UDim2.new(0, 5, 0, 10 + (order * 40))
+    button.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    button.Text = name
+    button.TextColor3 = Color3.fromRGB(255, 255, 255)
+    button.Font = Enum.Font.GothamBold
+    button.TextSize = 14
+    button.Parent = sidebar
+
+    local btnCorner = Instance.new("UICorner")
+    btnCorner.CornerRadius = UDim.new(0, 6)
+    btnCorner.Parent = button
+
+    button.MouseEnter:Connect(function()
+        button.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+    end)
+    button.MouseLeave:Connect(function()
+        button.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    end)
+
+    button.MouseButton1Click:Connect(callback)
+end
+
+-- Pages table
+local pages = {}
+
+local function createPage(name)
+    local page = Instance.new("Frame")
+    page.Size = UDim2.new(1, 0, 1, 0)
+    page.BackgroundTransparency = 1
+    page.Visible = false
+    page.Parent = contentFrame
+    pages[name] = page
+    return page
+end
+
+local function showPage(name)
+    for _, page in pairs(pages) do
+        page.Visible = false
+    end
+    if pages[name] then
+        pages[name].Visible = true
+    end
+end
+
+-- Pages
+local travelPage = createPage("Travel")
+local statusPage = createPage("Status")
+
+-- Sidebar buttons
+createSidebarButton("Travel", 0, function() showPage("Travel") end)
+createSidebarButton("Status", 1, function() showPage("Status") end)
+
+-- Travel example
+local travelLabel = Instance.new("TextLabel")
+travelLabel.Text = "Travel Options"
+travelLabel.Size = UDim2.new(1, -20, 0, 40)
+travelLabel.Position = UDim2.new(0, 10, 0, 10)
+travelLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+travelLabel.Font = Enum.Font.GothamBold
+travelLabel.TextSize = 18
+travelLabel.BackgroundTransparency = 1
+travelLabel.Parent = travelPage
+
+-- Example travel button
+local teleportBtn = Instance.new("TextButton")
+teleportBtn.Text = "Teleport to Spawn"
+teleportBtn.Size = UDim2.new(0, 200, 0, 40)
+teleportBtn.Position = UDim2.new(0, 20, 0, 60)
+teleportBtn.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+teleportBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+teleportBtn.Font = Enum.Font.GothamBold
+teleportBtn.TextSize = 14
+teleportBtn.Parent = travelPage
+
+local teleportCorner = Instance.new("UICorner")
+teleportCorner.CornerRadius = UDim.new(0, 6)
+teleportCorner.Parent = teleportBtn
+
+teleportBtn.MouseButton1Click:Connect(function()
+    local player = game.Players.LocalPlayer
+    if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+        player.Character.HumanoidRootPart.CFrame = CFrame.new(0, 10, 0)
+    end
+end)
+
+-- Status (AFK Toggle)
+local afkLabel = Instance.new("TextLabel")
+afkLabel.Text = "AFK Status: OFF"
+afkLabel.Size = UDim2.new(1, -20, 0, 40)
+afkLabel.Position = UDim2.new(0, 10, 0, 10)
+afkLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+afkLabel.Font = Enum.Font.GothamBold
+afkLabel.TextSize = 18
+afkLabel.BackgroundTransparency = 1
+afkLabel.Parent = statusPage
+
+local afkButton = Instance.new("TextButton")
+afkButton.Text = "Toggle AFK"
+afkButton.Size = UDim2.new(0, 200, 0, 40)
+afkButton.Position = UDim2.new(0, 20, 0, 60)
+afkButton.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+afkButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+afkButton.Font = Enum.Font.GothamBold
+afkButton.TextSize = 14
+afkButton.Parent = statusPage
+
+local afkCorner = Instance.new("UICorner")
+afkCorner.CornerRadius = UDim.new(0, 6)
+afkCorner.Parent = afkButton
+
+local isAFK = false
+afkButton.MouseButton1Click:Connect(function()
+    isAFK = not isAFK
+    if isAFK then
+        afkLabel.Text = "AFK Status: ON"
+        game.StarterGui:SetCore("SendNotification", {
+            Title = "AFK Mode",
+            Text = "You are now AFK",
+            Duration = 3
+        })
+    else
+        afkLabel.Text = "AFK Status: OFF"
+        game.StarterGui:SetCore("SendNotification", {
+            Title = "AFK Mode",
+            Text = "You are no longer AFK",
+            Duration = 3
+        })
+    end
+end)
+
+-- Floating Open Button
+local openBtn = Instance.new("TextButton")
+openBtn.Size = UDim2.new(0, 120, 0, 40)
+openBtn.Position = UDim2.new(0, 20, 0.8, 0)
+openBtn.Text = "Open Hub"
+openBtn.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+openBtn.TextColor3 = Color3.new(1,1,1)
+openBtn.Font = Enum.Font.GothamBold
+openBtn.TextSize = 16
+openBtn.Parent = screenGui
+
+local openCorner = Instance.new("UICorner")
+openCorner.CornerRadius = UDim.new(0, 8)
+openCorner.Parent = openBtn
+
+openBtn.Visible = false
+
+-- Close & Minimize logic
+closeBtn.MouseButton1Click:Connect(function()
+    mainFrame.Visible = false
+    openBtn.Visible = true
+end)
+
+minBtn.MouseButton1Click:Connect(function()
+    mainFrame.Visible = false
+    openBtn.Visible = true
+end)
+
+openBtn.MouseButton1Click:Connect(function()
+    mainFrame.Visible = true
+    openBtn.Visible = false
+end)
+
+-- Make UI draggable
+local UserInputService = game:GetService("UserInputService")
+local dragging, dragInput, dragStart, startPos
+
+local function update(input)
+    local delta = input.Position - dragStart
+    mainFrame.Position = UDim2.new(
+        startPos.X.Scale,
+        startPos.X.Offset + delta.X,
+        startPos.Y.Scale,
+        startPos.Y.Offset + delta.Y
+    )
+end
+
+topBar.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        dragging = true
+        dragStart = input.Position
+        startPos = mainFrame.Position
+
+        input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then
+                dragging = false
+            end
+        end)
+    end
+end)
+
+topBar.InputChanged:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+        dragInput = input
+    end
+end)
+
+UserInputService.InputChanged:Connect(function(input)
+    if input == dragInput and dragging then
+        update(input)
+    end
+end)
+
+-- Default page
+showPage("dont mind")
