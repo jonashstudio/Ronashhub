@@ -1,6 +1,8 @@
+-- RONASH HUB SCRIPT --
+
 -- ScreenGui
 local screenGui = Instance.new("ScreenGui")
-screenGui.Name = "ronashhub"
+screenGui.Name = "RonashHubUI"
 screenGui.ResetOnSpawn = false
 screenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
 
@@ -11,6 +13,7 @@ mainFrame.Position = UDim2.new(0.5, -300, 0.5, -175)
 mainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
 mainFrame.BorderSizePixel = 0
 mainFrame.Active = true
+mainFrame.Draggable = true
 mainFrame.Visible = true
 mainFrame.Parent = screenGui
 
@@ -26,7 +29,7 @@ topBar.BorderSizePixel = 0
 topBar.Parent = mainFrame
 
 local title = Instance.new("TextLabel")
- title.Text = "🎓 ronash Hub"
+title.Text = "⚡ Ronash Hub"
 title.Size = UDim2.new(1, -60, 1, 0)
 title.Position = UDim2.new(0, 10, 0, 0)
 title.TextXAlignment = Enum.TextXAlignment.Left
@@ -133,12 +136,16 @@ end
 -- Pages
 local travelPage = createPage("Travel")
 local statusPage = createPage("Status")
+local movementPage = createPage("Movement")
 
 -- Sidebar buttons
 createSidebarButton("Travel", 0, function() showPage("Travel") end)
 createSidebarButton("Status", 1, function() showPage("Status") end)
+createSidebarButton("Movement", 2, function() showPage("Movement") end)
 
--- Travel example
+-------------------------
+-- Travel Page Example --
+-------------------------
 local travelLabel = Instance.new("TextLabel")
 travelLabel.Text = "Travel Options"
 travelLabel.Size = UDim2.new(1, -20, 0, 40)
@@ -149,7 +156,6 @@ travelLabel.TextSize = 18
 travelLabel.BackgroundTransparency = 1
 travelLabel.Parent = travelPage
 
--- Example travel button
 local teleportBtn = Instance.new("TextButton")
 teleportBtn.Text = "Teleport to Spawn"
 teleportBtn.Size = UDim2.new(0, 200, 0, 40)
@@ -171,7 +177,9 @@ teleportBtn.MouseButton1Click:Connect(function()
     end
 end)
 
--- Status (AFK Toggle)
+------------------------
+-- Status Page (AFK) --
+------------------------
 local afkLabel = Instance.new("TextLabel")
 afkLabel.Text = "AFK Status: OFF"
 afkLabel.Size = UDim2.new(1, -20, 0, 40)
@@ -197,26 +205,120 @@ afkCorner.CornerRadius = UDim.new(0, 6)
 afkCorner.Parent = afkButton
 
 local isAFK = false
+local afkConnection = nil
 afkButton.MouseButton1Click:Connect(function()
     isAFK = not isAFK
     if isAFK then
         afkLabel.Text = "AFK Status: ON"
+        afkConnection = game:GetService("Players").LocalPlayer.Idled:Connect(function()
+            local VirtualUser = game:GetService("VirtualUser")
+            VirtualUser:CaptureController()
+            VirtualUser:ClickButton2(Vector2.new())
+        end)
         game.StarterGui:SetCore("SendNotification", {
-            Title = "AFK Mode",
-            Text = "You are now AFK",
+            Title = "AntiAFK",
+            Text = "Anti-AFK Enabled",
             Duration = 3
         })
     else
         afkLabel.Text = "AFK Status: OFF"
+        if afkConnection then
+            afkConnection:Disconnect()
+        end
         game.StarterGui:SetCore("SendNotification", {
-            Title = "AFK Mode",
-            Text = "You are no longer AFK",
+            Title = "AntiAFK",
+            Text = "Anti-AFK Disabled",
             Duration = 3
         })
     end
 end)
 
--- Floating Open Button
+-----------------------------
+-- Movement Page Controls --
+-----------------------------
+local humanoid = game.Players.LocalPlayer.Character:WaitForChild("Humanoid")
+local userInputService = game:GetService("UserInputService")
+local flying = false
+local flyConnection
+
+local function createMovementControl(labelText, defaultValue, callback)
+    local label = Instance.new("TextLabel")
+    label.Text = labelText .. ": " .. tostring(defaultValue)
+    label.Size = UDim2.new(1, -20, 0, 30)
+    label.Position = UDim2.new(0, 10, 0, (#movementPage:GetChildren()) * 35)
+    label.TextColor3 = Color3.fromRGB(255,255,255)
+    label.Font = Enum.Font.Gotham
+    label.TextSize = 14
+    label.BackgroundTransparency = 1
+    label.Parent = movementPage
+
+    local button = Instance.new("TextButton")
+    button.Text = "Change"
+    button.Size = UDim2.new(0, 100, 0, 30)
+    button.Position = UDim2.new(0, 10, 0, label.Position.Y.Offset + 35)
+    button.BackgroundColor3 = Color3.fromRGB(50,50,50)
+    button.TextColor3 = Color3.fromRGB(255,255,255)
+    button.Parent = movementPage
+
+    button.MouseButton1Click:Connect(function()
+        local newValue = tonumber(game:GetService("Players").LocalPlayer:Prompt("Enter new value:")) or defaultValue
+        label.Text = labelText .. ": " .. tostring(newValue)
+        callback(newValue)
+    end)
+end
+
+-- WalkSpeed
+createMovementControl("WalkSpeed", humanoid.WalkSpeed, function(val)
+    humanoid.WalkSpeed = val
+end)
+
+-- JumpPower
+createMovementControl("JumpPower", humanoid.JumpPower, function(val)
+    humanoid.JumpPower = val
+end)
+
+-- Gravity
+createMovementControl("Gravity", workspace.Gravity, function(val)
+    workspace.Gravity = val
+end)
+
+-- Fly Toggle
+local flyBtn = Instance.new("TextButton")
+flyBtn.Text = "Toggle Fly (OFF)"
+flyBtn.Size = UDim2.new(0, 200, 0, 40)
+flyBtn.Position = UDim2.new(0, 20, 0, 200)
+flyBtn.BackgroundColor3 = Color3.fromRGB(50,50,50)
+flyBtn.TextColor3 = Color3.new(1,1,1)
+flyBtn.Font = Enum.Font.GothamBold
+flyBtn.TextSize = 14
+flyBtn.Parent = movementPage
+
+flyBtn.MouseButton1Click:Connect(function()
+    flying = not flying
+    if flying then
+        flyBtn.Text = "Toggle Fly (ON)"
+        local player = game.Players.LocalPlayer
+        local character = player.Character or player.CharacterAdded:Wait()
+        local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
+        flyConnection = game:GetService("RunService").Heartbeat:Connect(function()
+            local move = Vector3.new()
+            if userInputService:IsKeyDown(Enum.KeyCode.W) then move = move + Vector3.new(0,0,-1) end
+            if userInputService:IsKeyDown(Enum.KeyCode.S) then move = move + Vector3.new(0,0,1) end
+            if userInputService:IsKeyDown(Enum.KeyCode.A) then move = move + Vector3.new(-1,0,0) end
+            if userInputService:IsKeyDown(Enum.KeyCode.D) then move = move + Vector3.new(1,0,0) end
+            if userInputService:IsKeyDown(Enum.KeyCode.Space) then move = move + Vector3.new(0,1,0) end
+            if userInputService:IsKeyDown(Enum.KeyCode.LeftShift) then move = move + Vector3.new(0,-1,0) end
+            humanoidRootPart.Velocity = move * 50
+        end)
+    else
+        flyBtn.Text = "Toggle Fly (OFF)"
+        if flyConnection then flyConnection:Disconnect() end
+    end
+end)
+
+-------------------------
+-- Floating Open Button --
+-------------------------
 local openBtn = Instance.new("TextButton")
 openBtn.Size = UDim2.new(0, 120, 0, 40)
 openBtn.Position = UDim2.new(0, 20, 0.8, 0)
@@ -249,45 +351,5 @@ openBtn.MouseButton1Click:Connect(function()
     openBtn.Visible = false
 end)
 
--- Make UI draggable
-local UserInputService = game:GetService("UserInputService")
-local dragging, dragInput, dragStart, startPos
-
-local function update(input)
-    local delta = input.Position - dragStart
-    mainFrame.Position = UDim2.new(
-        startPos.X.Scale,
-        startPos.X.Offset + delta.X,
-        startPos.Y.Scale,
-        startPos.Y.Offset + delta.Y
-    )
-end
-
-topBar.InputBegan:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-        dragging = true
-        dragStart = input.Position
-        startPos = mainFrame.Position
-
-        input.Changed:Connect(function()
-            if input.UserInputState == Enum.UserInputState.End then
-                dragging = false
-            end
-        end)
-    end
-end)
-
-topBar.InputChanged:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
-        dragInput = input
-    end
-end)
-
-UserInputService.InputChanged:Connect(function(input)
-    if input == dragInput and dragging then
-        update(input)
-    end
-end)
-
 -- Default page
-showPage("dont mind")
+showPage("Travel")
