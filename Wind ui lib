@@ -1,0 +1,163 @@
+-- Load WindUI with loadstring (latest version)
+local WindUI = loadstring(game:HttpGet("https://github.com/Footagesus/WindUI/releases/latest/download/main.lua"))()
+
+-- Set the theme to custom for our purple and black theme
+WindUI:AddTheme({
+    Name = "VinUI_Purple",
+    Accent = "#9370DB", -- Medium purple
+    Outline = "#FFFFFF",
+    Text = "#FFFFFF",
+    Placeholder = "#B19CD9", -- Light purple
+    Background = "#1A1A2E", -- Very dark blue/black
+    Button = "#6A5ACD", -- Slate blue
+    Icon = "#9370DB", -- Medium purple
+})
+
+-- Apply the custom theme
+WindUI:SetTheme("VinUI_Purple")
+
+-- Set notification position to lower
+WindUI:SetNotificationLower(true)
+
+-- Create the window with our customizations
+local Window = WindUI:CreateWindow({
+    Title = "VinUI ✧", -- Added star icon to title
+    Icon = "sparkles", -- Star/sparkle icon
+    Author = "VinUI Development",
+    Folder = "VinUI",
+    Size = UDim2.fromOffset(380, 360), -- Resized to 380x360 as requested
+    Transparent = true,
+    Theme = "VinUI_Purple", -- Use our custom theme
+    SideBarWidth = 150, -- Reduced sidebar width to fit smaller window
+    Background = "",
+    User = {
+        Enabled = true,
+        Anonymous = true,
+        Callback = function()
+            print("clicked")
+        end,
+    },
+    KeySystem = {
+        Key = { "Vin" }, -- Set the key to "Vin"
+        Note = "Enter key to continue.",
+        Thumbnail = {
+            Image = "rbxassetid://13924242897", -- Purple glow icon
+            Title = "Key: Vin", -- Display "Key: Vin" in the popup
+        },
+        URL = "https://github.com/Footagesus/WindUI",
+        SaveKey = true,
+    },
+}) 
+
+-- Create a home tab
+local HomePage = Window:CreatePage({
+    Title = "Home",
+    Icon = "home",
+})
+
+-- Create a "Add your tab here" tab
+local CustomTab = Window:CreatePage({
+    Title = "Add your tab here",
+    Icon = "plus",
+})
+
+-- Create a header section in the home tab
+local HeaderSection = HomePage:CreateSection({
+    Title = "VinUI ✧",
+    Icon = "sparkles",
+})
+
+-- Add a label with description
+HeaderSection:AddLabel({
+    Title = "Professional Lua UI Script Generator",
+})
+
+-- Create a features section
+local FeaturesSection = HomePage:CreateSection({
+    Title = "Features",
+    Icon = "list",
+})
+
+-- Add some feature buttons
+FeaturesSection:AddButton({
+    Title = "Modern Interface",
+    Icon = "layout",
+    Callback = function()
+        print("Feature clicked")
+    end,
+})
+
+-- Create a credits section
+local CreditsSection = HomePage:CreateSection({
+    Title = "Credits",
+    Icon = "users",
+})
+
+-- Add credits information
+CreditsSection:AddLabel({
+    Title = "VinUI Development Team",
+})
+
+CreditsSection:AddLabel({
+    Title = "Powered by WindUI",
+})
+
+-- Create a section in the custom tab
+local CustomSection = CustomTab:CreateSection({
+    Title = "Customize",
+    Icon = "settings",
+})
+
+-- Add a button to the custom tab
+CustomSection:AddButton({
+    Title = "Add Your Content Here",
+    Icon = "plus-circle",
+    Callback = function()
+        print("Custom button clicked")
+    end,
+})
+
+-- Add rainbow glow effect around UI edges with enhanced visibility
+local function ApplyRainbowGlowEffect(uiObject)
+    local borderEffect = Instance.new("UIStroke")
+    borderEffect.Thickness = 3 -- Increased thickness for better visibility
+    borderEffect.Color = Color3.fromRGB(147, 112, 219) -- Medium purple starting color
+    borderEffect.Parent = uiObject
+    
+    -- Add a glow effect
+    local uiGradient = Instance.new("UIGradient")
+    uiGradient.Color = ColorSequence.new({
+        ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 0, 128)), -- Pink
+        ColorSequenceKeypoint.new(0.2, Color3.fromRGB(255, 0, 0)), -- Red
+        ColorSequenceKeypoint.new(0.4, Color3.fromRGB(255, 165, 0)), -- Orange
+        ColorSequenceKeypoint.new(0.6, Color3.fromRGB(255, 255, 0)), -- Yellow
+        ColorSequenceKeypoint.new(0.8, Color3.fromRGB(0, 255, 255)), -- Cyan
+        ColorSequenceKeypoint.new(1, Color3.fromRGB(147, 112, 219)), -- Purple
+    })
+    uiGradient.Parent = borderEffect
+    
+    -- Rainbow animation with enhanced visibility
+    local runService = game:GetService("RunService")
+    local connection
+    connection = runService.RenderStepped:Connect(function(deltaTime)
+        -- Rotate the gradient faster for more visible effect
+        uiGradient.Rotation = (uiGradient.Rotation + deltaTime * 30) % 360
+        
+        -- Pulse the glow with higher minimum visibility
+        local pulse = (math.sin(tick() * 2) + 1) / 2 * 0.3 + 0.7 -- Value between 0.7 and 1 for better visibility
+        borderEffect.Transparency = 1 - pulse
+    end)
+    
+    -- Clean up when UI is destroyed
+    uiObject.AncestryChanged:Connect(function(_, parent)
+        if not parent then
+            connection:Disconnect()
+        end
+    end)
+end
+
+-- Apply the rainbow glow effect to the main window
+ApplyRainbowGlowEffect(Window.MainFrame)
+
+-- Return the window object
+return Window
