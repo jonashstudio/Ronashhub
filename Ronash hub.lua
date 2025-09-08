@@ -1,261 +1,221 @@
-local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+-- Ronash Hub ✧ v1.0.0.8
+local WindUI = loadstring(game:HttpGet("https://github.com/Footagesus/WindUI/releases/latest/download/main.lua"))()
 
-local Window = Rayfield:CreateWindow({
-    Name = "Ronash Hub | Reyfield Edition | Made by Jonash",
-    LoadingTitle = "Ronash Hub",
-    LoadingSubtitle = "Powered by Reyfield UI",
-    ConfigurationSaving = {
-        Enabled = true,
-        FolderName = "RonashHub",
-        FileName = "RonashHubConfig"
-    },
-    Discord = {
-        Enabled = true,
-        Invite = "nBMb3dh7", -- Ronash Hub Discord
-        RememberJoins = true
-    },
-    KeySystem = false
+-- 🌌 Blue Theme
+WindUI:AddTheme({
+    Name = "Ronash_Blue",
+    Accent = "#1E90FF", -- DodgerBlue
+    Outline = "#FFFFFF",
+    Text = "#FFFFFF",
+    Placeholder = "#87CEFA", -- LightSkyBlue
+    Background = "#0A0A1A", -- Deep navy blue
+    Button = "#4169E1", -- RoyalBlue
+    Icon = "#1E90FF",
+})
+WindUI:SetTheme("Ronash_Blue")
+
+-- 📦 Create Window
+local Window = WindUI:CreateWindow({
+    Title = "Ronash Hub ✧",
+    Icon = "sparkles",
+    Author = "Jonash",
+    Folder = "RonashHub",
+    Size = UDim2.fromOffset(580, 460), -- stable for mobile + pc
+    Transparent = false,
+    Theme = "Ronash_Blue",
+    SideBarWidth = 200,
 })
 
--- 📊 Status Tab
-local StatusTab = Window:CreateTab("Status", 4483345998)
-local statusLabel = StatusTab:CreateLabel("Script Status: ✅ UP")
-local executorName = (identifyexecutor and identifyexecutor()) or "Unknown Executor"
-StatusTab:CreateLabel("Executor: " .. executorName)
-StatusTab:CreateLabel("👑 Made by Jonash")
+-- 📑 Tabs
+local StatusTab = Window:Tab({ Title = "Status", Icon = "home" })
+local MainTab   = Window:Tab({ Title = "Main", Icon = "settings" })
+local PlayerTab = Window:Tab({ Title = "Player", Icon = "user" })
+local ExtrasTab = Window:Tab({ Title = "Extras", Icon = "star" })
+local AdminTab  = Window:Tab({ Title = "Admin", Icon = "hammer" })
 
--- 🛠 Main Tab (Speed, Jump, Gravity, Shiftlock)
-local MainTab = Window:CreateTab("Main", 4483345998)
-local player = game.Players.LocalPlayer
-local humanoid = player.Character:WaitForChild("Humanoid")
+-- 🟢 STATUS TAB
+StatusTab:Paragraph({
+    Title = "Ronash Hub v1.0.0.8",
+    Desc = "✅ Loaded successfully\n🎨 Blue Theme applied\n👥 ESP Enabled\n⚡ Stable Build",
+    Color = "Blue",
+})
+
+-- ⚡ MAIN TAB (Walk, Jump, Inf Jump)
+local walkEnabled, jumpEnabled, infJump = false, false, false
+local walkSpeed, jumpPower = 16, 50
+local humanoid = nil
+
+local function updateHumanoid()
+    local char = game.Players.LocalPlayer.Character
+    if char then humanoid = char:FindFirstChildOfClass("Humanoid") end
+end
+game.Players.LocalPlayer.CharacterAdded:Connect(updateHumanoid)
+updateHumanoid()
 
 -- WalkSpeed
-local speedEnabled = false
-MainTab:CreateToggle({
-    Name = "Enable WalkSpeed",
-    CurrentValue = false,
-    Callback = function(v) speedEnabled = v end
-})
-MainTab:CreateSlider({
-    Name = "WalkSpeed",
-    Range = {16, 200},
-    Increment = 1,
-    CurrentValue = 16,
+MainTab:Toggle({
+    Title = "WalkSpeed",
+    Desc = "Toggle custom speed",
     Callback = function(v)
-        if speedEnabled then humanoid.WalkSpeed = v end
+        walkEnabled = v
+        if humanoid then humanoid.WalkSpeed = v and walkSpeed or 16 end
+    end
+})
+MainTab:Slider({
+    Title = "Speed Value",
+    Value = { Min = 16, Max = 200, Default = 16 },
+    Callback = function(v)
+        walkSpeed = v
+        if walkEnabled and humanoid then humanoid.WalkSpeed = v end
     end
 })
 
 -- JumpPower
-local jumpEnabled = false
-MainTab:CreateToggle({
-    Name = "Enable JumpPower",
-    CurrentValue = false,
-    Callback = function(v) jumpEnabled = v end
-})
-MainTab:CreateSlider({
-    Name = "JumpPower",
-    Range = {50, 300},
-    Increment = 5,
-    CurrentValue = 50,
+MainTab:Toggle({
+    Title = "JumpPower",
+    Desc = "Toggle custom jump",
     Callback = function(v)
-        if jumpEnabled then humanoid.JumpPower = v end
+        jumpEnabled = v
+        if humanoid then humanoid.JumpPower = v and jumpPower or 50 end
+    end
+})
+MainTab:Slider({
+    Title = "Jump Value",
+    Value = { Min = 50, Max = 300, Default = 50 },
+    Callback = function(v)
+        jumpPower = v
+        if jumpEnabled and humanoid then humanoid.JumpPower = v end
     end
 })
 
--- Gravity
-local gravEnabled = false
-MainTab:CreateToggle({
-    Name = "Enable Gravity",
-    CurrentValue = false,
-    Callback = function(v) gravEnabled = v end
+-- Infinite Jump
+MainTab:Toggle({
+    Title = "Infinite Jump",
+    Desc = "Toggle unlimited jumping",
+    Callback = function(v) infJump = v end
 })
-MainTab:CreateSlider({
-    Name = "Gravity",
-    Range = {0, 400},
-    Increment = 5,
-    CurrentValue = 196,
-    Callback = function(v)
-        if gravEnabled then workspace.Gravity = v end
+game:GetService("UserInputService").JumpRequest:Connect(function()
+    if infJump and humanoid then humanoid:ChangeState("Jumping") end
+end)
+
+-- 👤 PLAYER TAB
+PlayerTab:Button({
+    Title = "Freeze (self)",
+    Callback = function()
+        local hrp = game.Players.LocalPlayer.Character and game.Players.LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+        if hrp then hrp.Anchored = true end
+    end
+})
+PlayerTab:Button({
+    Title = "Unfreeze (self)",
+    Callback = function()
+        local hrp = game.Players.LocalPlayer.Character and game.Players.LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+        if hrp then hrp.Anchored = false end
     end
 })
 
--- Shiftlock
-MainTab:CreateToggle({
-    Name = "Shiftlock",
-    CurrentValue = false,
-    Callback = function(v)
-        player.DevEnableMouseLock = v
-        player.DevComputerMovementMode = Enum.DevComputerMovementMode.Scriptable
-    end
+-- NoClip
+local noclip = false
+PlayerTab:Toggle({
+    Title = "NoClip",
+    Callback = function(v) noclip = v end
 })
+game:GetService("RunService").Stepped:Connect(function()
+    if noclip and humanoid and humanoid.Parent then
+        for _, part in ipairs(humanoid.Parent:GetDescendants()) do
+            if part:IsA("BasePart") and part.CanCollide then part.CanCollide = false end
+        end
+    end
+end)
 
--- 🎯 Player Tab
-local PlayerTab = Window:CreateTab("Player", 4483345998)
-local spectating = false
-local spectatingTarget
+-- Anti-Fling / Unfling
+PlayerTab:Toggle({
+    Title = "Unfling (Anti-Fling)",
+    Callback = function(v)
+        local lp = game.Players.LocalPlayer
+        local char = lp.Character
+        if not char then return end
+        local hrp = char:FindFirstChild("HumanoidRootPart")
+        if not hrp then return end
 
-PlayerTab:CreateDropdown({
-    Name = "Spectate Player",
-    Options = {},
-    CurrentOption = "",
-    Callback = function(selected)
-        local target = game.Players:FindFirstChild(selected)
-        if target and target.Character and target.Character:FindFirstChild("Humanoid") then
-            spectating = true
-            spectatingTarget = target
-            workspace.CurrentCamera.CameraSubject = target.Character.Humanoid
+        if v then
+            hrp.CustomPhysicalProperties = PhysicalProperties.new(0, 0, 0)
+        else
+            hrp.CustomPhysicalProperties = PhysicalProperties.new(1, 0.3, 0.5)
         end
     end
 })
 
-PlayerTab:CreateButton({
-    Name = "Stop Spectating",
-    Callback = function()
-        spectating = false
-        workspace.CurrentCamera.CameraSubject = player.Character:FindFirstChild("Humanoid")
-    end
-})
-
-PlayerTab:CreateButton({
-    Name = "Freeze Yourself",
-    Callback = function()
-        player.Character:FindFirstChild("HumanoidRootPart").Anchored = true
-    end
-})
-
-PlayerTab:CreateButton({
-    Name = "Unfreeze Yourself",
-    Callback = function()
-        player.Character:FindFirstChild("HumanoidRootPart").Anchored = false
-    end
-})
-
--- 👁 ESP Tab
-local ESPTab = Window:CreateTab("ESP", 4483345998)
-local espEnabled = false
-local espFolder = Instance.new("Folder", game.CoreGui)
-espFolder.Name = "RonashESP"
-
-local function addESP(char)
-    if not espEnabled then return end
-    if char:FindFirstChild("HumanoidRootPart") then
-        local highlight = Instance.new("Highlight")
-        highlight.FillColor = Color3.fromRGB(255, 0, 0)
-        highlight.OutlineColor = Color3.fromRGB(255, 255, 255)
-        highlight.Parent = espFolder
-        highlight.Adornee = char
-    end
-end
-
-ESPTab:CreateToggle({
-    Name = "Enable ESP",
-    CurrentValue = false,
+-- 👁 ESP TAB (inside Player for stability)
+PlayerTab:Toggle({
+    Title = "ESP (Players)",
     Callback = function(v)
-        espEnabled = v
-        espFolder:ClearAllChildren()
-        if v then
-            for _,plr in pairs(game.Players:GetPlayers()) do
-                if plr ~= player and plr.Character then
-                    addESP(plr.Character)
+        for _, p in ipairs(game.Players:GetPlayers()) do
+            if p ~= game.Players.LocalPlayer then
+                local char = p.Character
+                if char then
+                    local highlight = char:FindFirstChildOfClass("Highlight")
+                    if v then
+                        if not highlight then
+                            local h = Instance.new("Highlight", char)
+                            h.FillColor = Color3.fromRGB(0, 162, 255)
+                            h.OutlineColor = Color3.fromRGB(255, 255, 255)
+                            h.FillTransparency = 0.5
+                        end
+                    else
+                        if highlight then highlight:Destroy() end
+                    end
                 end
             end
         end
     end
 })
 
--- 🌟 Extra Tab
-local ExtraTab = Window:CreateTab("Extra", 4483345998)
-ExtraTab:CreateButton({
-    Name = "ForceField",
-    Callback = function()
-        Instance.new("ForceField", player.Character)
-    end
-})
-
-local antiAFK
-ExtraTab:CreateToggle({
-    Name = "Anti-AFK",
-    CurrentValue = false,
+-- ⭐ EXTRAS TAB
+local ff = nil
+ExtrasTab:Toggle({
+    Title = "ForceField",
     Callback = function(v)
+        local char = game.Players.LocalPlayer.Character
         if v then
-            antiAFK = player.Idled:Connect(function()
-                game.VirtualUser:CaptureController()
-                game.VirtualUser:ClickButton2(Vector2.new())
-            end)
+            if char and not ff then ff = Instance.new("ForceField", char) end
         else
-            if antiAFK then antiAFK:Disconnect() end
+            if ff then ff:Destroy() ff = nil end
         end
     end
 })
+ExtrasTab:Button({
+    Title = "Credits",
+    Callback = function()
+        WindUI:Notify({ Title = "Ronash Hub ✧", Content = "Made by Jonash" })
+    end
+})
 
--- 🤖 AI Chat Tab (fixed + merged)
-local AITab = Window:CreateTab("AI Chat", 4483345998)
-local ChatLog = ""
-
-local ChatHistory = AITab:CreateParagraph({Title="Chat History", Content=ChatLog})
-
-AITab:CreateTextbox({
-    Name = "Chat with AI",
-    CurrentValue = "",
-    PlaceholderText = "Type something...",
-    Callback = function(msg)
-        if msg:match("^%s*$") then
-            Rayfield:Notify({
-                Title = "AI Reply",
-                Content = "Please type something first!",
-                Duration = 3
-            })
-            return
-        end
-
-        local reply
-        local lower = msg:lower()
-
-        -- Commands and keyword replies
-        if lower:find("hello") or lower:find("hi") then
-            reply = "Hello! How are you?"
-        elseif lower:find("hub") then
-            reply = "Ronash Hub is always on top 🔥"
-        elseif lower:find("joke") then
-            reply = "Why did the Robloxian cross the road? To finish the obby!"
-        elseif lower:find("status") then
-            reply = "✅ Hub is working fine!"
-        elseif lower:find("/walkspeed") then
-            local val = tonumber(lower:match("%d+"))
-            if val then
-                humanoid.WalkSpeed = val
-                reply = "WalkSpeed set to "..val
-            else
-                reply = "⚠ Invalid WalkSpeed value!"
-            end
-        elseif lower:find("/jump") then
-            local val = tonumber(lower:match("%d+"))
-            if val then
-                humanoid.JumpPower = val
-                reply = "JumpPower set to "..val
-            else
-                reply = "⚠ Invalid JumpPower value!"
-            end
-        else
-            local generic = {
-                "Interesting... tell me more!",
-                "Haha true!",
-                "That’s cool!",
-                "Hmm, I see!"
-            }
-            reply = generic[math.random(1,#generic)]
-        end
-
-        -- Update chat log
-        ChatLog = ChatLog .. "\nYou: " .. msg .. "\nAI: " .. reply
-        AITab:UpdateParagraph("Chat History", {Title="Chat History", Content=ChatLog})
-
-        Rayfield:Notify({
-            Title = "AI Reply",
-            Content = reply,
-            Duration = 3
+-- 🔨 ADMIN TAB
+AdminTab:Button({
+    Title = "Joke Ban",
+    Callback = function()
+        WindUI:Popup({
+            Title = "⚠️ Ban Alert",
+            Content = "You are banned! (just kidding 😆)",
+            Buttons = { { Title = "OK", Callback = function() end } }
         })
     end
 })
+AdminTab:Button({
+    Title = "Hammer",
+    Callback = function()
+        WindUI:Notify({ Title = "Bonk! 🔨", Content = "You used the admin hammer." })
+    end
+})
+
+-- 🔁 Reapply toggles after respawn
+game.Players.LocalPlayer.CharacterAdded:Connect(function()
+    task.wait(1)
+    updateHumanoid()
+    if humanoid then
+        if walkEnabled then humanoid.WalkSpeed = walkSpeed end
+        if jumpEnabled then humanoid.JumpPower = jumpPower end
+    end
+end)
 
