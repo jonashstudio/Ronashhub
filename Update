@@ -1,5 +1,68 @@
-UPDATE!!
-1.0.0.3
-CHANGELOGS:
-improve ai chat
-fix forcefield(can spam now)
+update v2
+2.0.0.3
+1. Loader (Part 1)
+
+Clean, animated progress bar.
+
+Text label “RONASH v2 Loading…”.
+
+Auto-close after loading finishes.
+
+
+
+2. UI Window Structure
+
+Placeholder Window table to simulate a tabbed UI system.
+
+Supports multiple tabs and sections (clean structure for expansion).
+
+Notifications system integrated (Window:Notify).
+
+
+
+3. Part 2 – Fly
+
+A placeholder for your fixed fly logic.
+
+You can plug your existing fly code here so it works with the new tab structure.
+
+Supports speed control, up/down buttons, and toggle on/off.
+
+
+
+4. Part 3 – Tab-by-Tab Features
+
+Valex Tab: Auto Farm, Auto Collect toggles.
+
+Ronin Tab: Kill Aura, Auto Stab toggles.
+
+Settings Tab: Show/Hide UI toggle and Theme dropdown.
+
+Discord Tab: Button to copy your Discord link.
+
+
+
+5. Tab-by-Tab Structure
+
+Each major feature set is separated into tabs.
+
+You can expand by just adding sections and buttons inside each tab.
+
+
+
+6. Notifications
+
+When a toggle or button is clicked, it pops up a notification (like “Auto Farm Enabled” or “Discord link copied”).
+
+
+
+
+✅ Key differences from your previous parts:
+
+Now all parts are structured in one file, easy to maintain.
+
+Fly is isolated and can be integrated without conflicting with other features.
+
+Tabs make it organized: Valex, Ronin, Settings, Discord.
+
+Loader is functional and closes automatically
