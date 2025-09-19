@@ -1,6 +1,6 @@
 -- =========================
 -- RONASH v2🔥 PART 1
--- Loader + Main UI + Sidebar
+-- Loader + Main UI + Fly Tab
 -- =========================
 
 -- Load UI Library
@@ -22,9 +22,20 @@ bg.Parent=loaderGui
 local logo=Instance.new("ImageLabel")
 logo.Size=UDim2.new(0,150,0,150)
 logo.Position=UDim2.new(0.5,-75,0,20)
-logo.Image="rbxassetid://96680008830476" -- your logo
+logo.Image="rbxassetid://96680008830476"
 logo.BackgroundTransparency=1
 logo.Parent=bg
+
+-- Progress Text
+local progText = Instance.new("TextLabel")
+progText.Size = UDim2.new(0, 300, 0, 20)
+progText.Position = UDim2.new(0.5,-150,1,-80)
+progText.BackgroundTransparency = 1
+progText.Font = Enum.Font.SourceSans
+progText.TextSize = 18
+progText.TextColor3 = Color3.fromRGB(0,255,255)
+progText.Text = "Loading..."
+progText.Parent = bg
 
 -- Progress Bar Background
 local barBG=Instance.new("Frame")
@@ -48,17 +59,12 @@ local steps=50
 
 for i=1,steps do
     local percent=i/steps
+    progText.Text = "Loading... "..math.floor(percent*100).."%"
     TweenService:Create(barFill,TweenInfo.new(totalTime/steps,Enum.EasingStyle.Linear),{Size=UDim2.new(percent,0,1,0)}):Play()
     task.wait(totalTime/steps)
 end
 
--- Glow effect on logo
-local uigrad=Instance.new("UIGradient")
-uigrad.Color=ColorSequence.new({ColorSequenceKeypoint.new(0,Color3.fromRGB(0,255,255)),ColorSequenceKeypoint.new(1,Color3.fromRGB(0,128,255))})
-uigrad.Rotation=45
-uigrad.Parent=logo
-
-task.wait(0.5) -- small delay before removing loader
+task.wait(0.5)
 loaderGui:Destroy()
 
 -- ===== CREATE MAIN WINDOW =====
@@ -77,157 +83,22 @@ local Window = Library:Window({
     }
 })
 
--- Sidebar Vertical Separator
-local SidebarLine = Instance.new("Frame")
-SidebarLine.Size = UDim2.new(0, 1, 1, 0)
-SidebarLine.Position = UDim2.new(0, 120, 0, 0)
-SidebarLine.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
-SidebarLine.BorderSizePixel = 0
-SidebarLine.ZIndex = 5
-SidebarLine.Name = "SidebarLine"
-SidebarLine.Parent = Window.Gui
+-- ===== FLY TAB =====
+local FlyTab = Window:Tab({Title = "Fly", Icon = "star"}) do
+    FlyTab:Section({Title = "Player Flight Controls"})
 
--- ===== MAIN TAB =====
-local Tab = Window:Tab({Title = "Main", Icon = "star"}) do
-    Tab:Section({Title = "All UI Components"})
-
-    -- Toggle
-    Tab:Toggle({
-        Title = "Enable Feature",
-        Desc = "Toggle to enable or disable the feature",
-        Value = false,
-        Callback = function(v)
-            print("Toggle:", v)
-        end
-    })
-
-    -- Button
-    Tab:Button({
-        Title = "Run Action",
-        Desc = "Click to perform something",
-        Callback = function()
-            print("Button clicked!")
-            Window:Notify({
-                Title = "Button",
-                Desc = "Action performed successfully.",
-                Time = 3
-            })
-        end
-    })
-
-    -- Textbox
-    Tab:Textbox({
-        Title = "Input Text",
-        Desc = "Type something here",
-        Placeholder = "Enter value",
-        Value = "",
-        ClearTextOnFocus = false,
-        Callback = function(text)
-            print("Textbox value:", text)
-        end
-    })
-
-    -- Slider
-    Tab:Slider({
-        Title = "Set Speed",
-        Min = 0,
-        Max = 100,
-        Rounding = 0,
-        Value = 25,
-        Callback = function(val)
-            print("Slider:", val)
-        end
-    })
-
-    -- Dropdown
-    Tab:Dropdown({
-        Title = "Choose Option",
-        List = {"Option 1", "Option 2", "Option 3"},
-        Value = "Option 1",
-        Callback = function(choice)
-            print("Selected:", choice)
-        end
-    })
-end
--- =========================
--- RONASH v2🔥 PART 2
--- TP + Extras (Stable Fly, Smooth TP, Noclip, WalkSpeed/JumpPower, Anti-AFK)
--- =========================
-
-local RunService=game:GetService("RunService")
-local Players=game:GetService("Players")
-local LocalPlayer=Players.LocalPlayer
-local Character=LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
-local HRP=Character:WaitForChild("HumanoidRootPart")
-local Humanoid=Character:WaitForChild("Humanoid")
-local UIS=game:GetService("UserInputService")
-
--- ===== TP TAB =====
-local TP=Window:Tab({Title="Teleport",Icon="arrow"}) do
-    TP:Section({Title="Teleport to Players & Locations",Size=UDim2.new(0,370,0,200)})
-
-    TP:Dropdown({
-        Title="Select Player",
-        List=(function()
-            local plrs={}
-            for _,v in pairs(Players:GetPlayers()) do
-                if v~=LocalPlayer then table.insert(plrs,v.Name) end
-            end
-            return plrs
-        end)(),
-        Value="",
-        Callback=function(name)
-            local target=Players:FindFirstChild(name)
-            if target and target.Character and target.Character:FindFirstChild("HumanoidRootPart") then
-                local targetHRP = target.Character.HumanoidRootPart
-                local tweenTime = 0.5
-                local startPos = HRP.Position
-                local goalPos = targetHRP.Position
-                for i=0,1,0.1 do
-                    HRP.CFrame=CFrame.new(startPos:lerp(goalPos,i))
-                    task.wait(tweenTime*0.1)
-                end
-                HRP.CFrame=CFrame.new(goalPos)
-                Window:Notify({Title="TP",Desc="Teleported to "..name,Time=3})
-            end
-        end
-    })
-
-    TP:Dropdown({
-        Title="Preset Locations",
-        List={"Spawn","Arena","Marketplace"},
-        Value="Spawn",
-        Callback=function(loc)
-            local cf
-            if loc=="Spawn" then cf=CFrame.new(0,10,0) end
-            if loc=="Arena" then cf=CFrame.new(100,10,0) end
-            if loc=="Marketplace" then cf=CFrame.new(-50,10,100) end
-            if cf then
-                local startPos = HRP.Position
-                local goalPos = cf.Position
-                for i=0,1,0.1 do
-                    HRP.CFrame=CFrame.new(startPos:lerp(goalPos,i))
-                    task.wait(0.05)
-                end
-                HRP.CFrame=cf
-                Window:Notify({Title="TP",Desc="Teleported to "..loc,Time=3})
-            end
-        end
-    })
-end
-
--- ===== EXTRAS TAB =====
-local Extras=Window:Tab({Title="Extras",Icon="star"}) do
-    Extras:Section({Title="Utilities",Size=UDim2.new(0,370,0,200)})
-
-    -- Stable Fly
     local flying=false
-    local BodyGyro,BodyVelocity
-    local moveVector=Vector3.new(0,0,0)
     local flySpeed=50
+    local moveVector=Vector3.new(0,0,0)
+    local RunService=game:GetService("RunService")
+    local UIS=game:GetService("UserInputService")
+    local LocalPlayer=game.Players.LocalPlayer
+    local HRP=LocalPlayer.Character:WaitForChild("HumanoidRootPart")
+    local Humanoid=LocalPlayer.Character:WaitForChild("Humanoid")
+    local BodyGyro,BodyVelocity
 
-    Extras:Toggle({
-        Title="Fly",
+    FlyTab:Toggle({
+        Title="Enable Fly",
         Value=false,
         Callback=function(v)
             flying=v
@@ -250,7 +121,7 @@ local Extras=Window:Tab({Title="Extras",Icon="star"}) do
         end
     })
 
-    Extras:Slider({
+    FlyTab:Slider({
         Title="Fly Speed",
         Min=10,
         Max=300,
@@ -260,7 +131,7 @@ local Extras=Window:Tab({Title="Extras",Icon="star"}) do
         end
     })
 
-    -- Fly movement controls
+    -- Fly movement
     UIS.InputBegan:Connect(function(input,gp)
         if gp then return end
         if input.KeyCode==Enum.KeyCode.W then moveVector = Vector3.new(0,0,-1) end
@@ -270,7 +141,6 @@ local Extras=Window:Tab({Title="Extras",Icon="star"}) do
         if input.KeyCode==Enum.KeyCode.Space then moveVector = Vector3.new(0,1,0) end
         if input.KeyCode==Enum.KeyCode.LeftShift then moveVector = Vector3.new(0,-1,0) end
     end)
-
     UIS.InputEnded:Connect(function(input,gp)
         if gp then return end
         if input.KeyCode==Enum.KeyCode.W or input.KeyCode==Enum.KeyCode.S or
@@ -288,123 +158,214 @@ local Extras=Window:Tab({Title="Extras",Icon="star"}) do
             BodyGyro.CFrame=CFrame.new(HRP.Position, HRP.Position + camCFrame.LookVector)
         end
     end)
+end
+-- =========================
+-- RONASH v2🔥 PART 2
+-- Teleports + Extras Tab
+-- =========================
 
-    -- Optimized Noclip
+-- ===== TELEPORT TAB =====
+local TeleportTab = Window:Tab({Title="Teleports", Icon="map"}) do
+    TeleportTab:Section({Title="Teleport to Places"})
+
+    -- Example Teleports
+    TeleportTab:Button({
+        Title="Spawn",
+        Callback=function()
+            local plr = game.Players.LocalPlayer
+            if plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
+                plr.Character.HumanoidRootPart.CFrame = CFrame.new(Vector3.new(0,5,0))
+            end
+            Window:Notify({Title="Teleport", Desc="Teleported to Spawn", Time=2})
+        end
+    })
+
+    TeleportTab:Button({
+        Title="Shop",
+        Callback=function()
+            local plr = game.Players.LocalPlayer
+            if plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
+                plr.Character.HumanoidRootPart.CFrame = CFrame.new(Vector3.new(100,5,0))
+            end
+            Window:Notify({Title="Teleport", Desc="Teleported to Shop", Time=2})
+        end
+    })
+end
+
+-- ===== EXTRAS TAB =====
+local ExtrasTab = Window:Tab({Title="Extras", Icon="gear"}) do
+    ExtrasTab:Section({Title="Player Utilities"})
+
+    -- WalkSpeed
+    local walkSpeed = 16
+    ExtrasTab:Slider({
+        Title="WalkSpeed",
+        Min=16,
+        Max=500,
+        Value=16,
+        Callback=function(val)
+            walkSpeed = val
+            local plr = game.Players.LocalPlayer
+            if plr.Character and plr.Character:FindFirstChildOfClass("Humanoid") then
+                plr.Character:FindFirstChildOfClass("Humanoid").WalkSpeed = walkSpeed
+            end
+        end
+    })
+
+    -- JumpPower
+    local jumpPower = 50
+    ExtrasTab:Slider({
+        Title="JumpPower",
+        Min=50,
+        Max=500,
+        Value=50,
+        Callback=function(val)
+            jumpPower = val
+            local plr = game.Players.LocalPlayer
+            if plr.Character and plr.Character:FindFirstChildOfClass("Humanoid") then
+                plr.Character:FindFirstChildOfClass("Humanoid").JumpPower = jumpPower
+            end
+        end
+    })
+
+    -- Noclip Toggle
     local noclip=false
-    Extras:Toggle({
+    ExtrasTab:Toggle({
         Title="Noclip",
         Value=false,
         Callback=function(v)
             noclip=v
-            Window:Notify({Title="Noclip",Desc=(v and "Enabled" or "Disabled"),Time=3})
+            local plr = game.Players.LocalPlayer
+            if v then
+                Window:Notify({Title="Noclip", Desc="Enabled", Time=2})
+            else
+                Window:Notify({Title="Noclip", Desc="Disabled", Time=2})
+            end
         end
     })
 
-    RunService.Stepped:Connect(function()
-        if noclip then
-            for _,p in pairs(Character:GetDescendants()) do
-                if p:IsA("BasePart") then
-                    p.CanCollide=false
+    -- Anti AFK
+    ExtrasTab:Toggle({
+        Title="Anti AFK",
+        Value=true,
+        Callback=function(v)
+            local plr = game.Players.LocalPlayer
+            if v then
+                for i,connection in pairs(getconnections or {}) do
+                    if connection.Name=="Idled" then
+                        connection:Disable()
+                    end
                 end
+                Window:Notify({Title="AntiAFK", Desc="Enabled", Time=2})
+            else
+                Window:Notify({Title="AntiAFK", Desc="Disabled", Time=2})
             end
         end
-    end)
-
-    -- WalkSpeed / JumpPower
-    Extras:Slider({Title="WalkSpeed",Min=16,Max=500,Value=16,Callback=function(val)
-        Humanoid.WalkSpeed=val
-    end})
-
-    Extras:Slider({Title="JumpPower",Min=50,Max=300,Value=50,Callback=function(val)
-        Humanoid.JumpPower=val
-    end})
-
-    -- Anti-AFK
-    Players.LocalPlayer.Idled:Connect(function()
-        game:GetService("VirtualUser"):CaptureController()
-        game:GetService("VirtualUser"):ClickButton2(Vector2.new(0,0))
-    end)
+    })
 end
 -- =========================
 -- RONASH v2🔥 PART 3
--- Valex + Ronin + Settings + Glow + Resizable UI + Final Notification
+-- Valex + Ronin + Settings + Discord
 -- =========================
 
 -- ===== VALEx TAB =====
-local ValexTab=Window:Tab({Title="Valex",Icon="shield"}) do
+local ValexTab = Window:Tab({Title="Valex", Icon="star"}) do
     ValexTab:Section({Title="Valex Features"})
 
-    ValexTab:Button({
-        Title="Activate Valex Feature",
-        Desc="Run special Valex action",
-        Callback=function()
-            Window:Notify({Title="Valex",Desc="Valex feature activated!",Time=3})
-            print("Valex feature executed")
+    -- Example Feature: Auto Farm
+    ValexTab:Toggle({
+        Title="Auto Farm",
+        Value=false,
+        Callback=function(v)
+            if v then
+                Window:Notify({Title="Valex", Desc="Auto Farm Enabled", Time=2})
+                -- Insert Auto Farm logic here
+            else
+                Window:Notify({Title="Valex", Desc="Auto Farm Disabled", Time=2})
+            end
+        end
+    })
+
+    -- Example Feature: Auto Collect
+    ValexTab:Toggle({
+        Title="Auto Collect",
+        Value=false,
+        Callback=function(v)
+            if v then
+                Window:Notify({Title="Valex", Desc="Auto Collect Enabled", Time=2})
+                -- Insert Auto Collect logic here
+            else
+                Window:Notify({Title="Valex", Desc="Auto Collect Disabled", Time=2})
+            end
         end
     })
 end
 
 -- ===== RONIN TAB =====
-local RoninTab=Window:Tab({Title="Ronin",Icon="samurai"}) do
+local RoninTab = Window:Tab({Title="Ronin", Icon="sword"}) do
     RoninTab:Section({Title="Ronin Features"})
 
-    RoninTab:Button({
-        Title="Activate Ronin Feature",
-        Desc="Run special Ronin action",
-        Callback=function()
-            Window:Notify({Title="Ronin",Desc="Ronin feature activated!",Time=3})
-            print("Ronin feature executed")
+    -- Example Feature: Kill Aura
+    RoninTab:Toggle({
+        Title="Kill Aura",
+        Value=false,
+        Callback=function(v)
+            if v then
+                Window:Notify({Title="Ronin", Desc="Kill Aura Enabled", Time=2})
+                -- Insert Kill Aura logic here
+            else
+                Window:Notify({Title="Ronin", Desc="Kill Aura Disabled", Time=2})
+            end
+        end
+    })
+
+    -- Example Feature: Auto Stab
+    RoninTab:Toggle({
+        Title="Auto Stab",
+        Value=false,
+        Callback=function(v)
+            if v then
+                Window:Notify({Title="Ronin", Desc="Auto Stab Enabled", Time=2})
+                -- Insert Auto Stab logic here
+            else
+                Window:Notify({Title="Ronin", Desc="Auto Stab Disabled", Time=2})
+            end
         end
     })
 end
 
 -- ===== SETTINGS TAB =====
-local SettingsTab=Window:Tab({Title="Settings",Icon="wrench"}) do
+local SettingsTab = Window:Tab({Title="Settings", Icon="cog"}) do
     SettingsTab:Section({Title="UI Settings"})
 
-    -- Glowing buttons example
-    local function makeGlow(button)
-        local uigrad=Instance.new("UIGradient")
-        uigrad.Color=ColorSequence.new({ColorSequenceKeypoint.new(0,Color3.fromRGB(0,255,255)),ColorSequenceKeypoint.new(1,Color3.fromRGB(0,128,255))})
-        uigrad.Rotation=45
-        uigrad.Parent=button
-    end
-
-    SettingsTab:Button({
-        Title="Glow Test Button",
-        Desc="Example glowing button",
-        Callback=function()
-            Window:Notify({Title="Glow",Desc="Button glow applied!",Time=3})
+    -- Toggle UI Visibility
+    SettingsTab:Toggle({
+        Title="Show/Hide UI",
+        Value=true,
+        Callback=function(v)
+            Window:SetVisible(v)
         end
     })
 
-    -- Resizable UI example
-    SettingsTab:Slider({
-        Title="Resize UI Width",
-        Min=400,
-        Max=800,
-        Value=575,
-        Callback=function(val)
-            Window.Config.Size=UDim2.new(0,val,0,Window.Config.Size.Y.Offset)
-            Window:UpdateSize()
-        end
-    })
-
-    SettingsTab:Slider({
-        Title="Resize UI Height",
-        Min=300,
-        Max=600,
-        Value=387,
-        Callback=function(val)
-            Window.Config.Size=UDim2.new(0,Window.Config.Size.X.Offset,0,val)
-            Window:UpdateSize()
+    -- UI Theme
+    SettingsTab:Dropdown({
+        Title="UI Theme",
+        Options={"Dark","Light","Neon","Classic"},
+        Callback=function(theme)
+            Window:SetTheme(theme)
         end
     })
 end
 
--- ===== FINAL NOTIFICATION =====
-Window:Notify({
-    Title="Ronash v2🔥",
-    Desc="All features loaded successfully! Enjoy the hub!",
-    Time=4
-})
+-- ===== DISCORD TAB =====
+local DiscordTab = Window:Tab({Title="Discord", Icon="discord"}) do
+    DiscordTab:Section({Title="Join Our Discord"})
+
+    DiscordTab:Button({
+        Title="Join Now",
+        Callback=function()
+            setclipboard("https://discord.gg/pvywPyskHT")
+            Window:Notify({Title="Discord", Desc="Link Copied to Clipboard!", Time=3})
+        end
+    })
+end
